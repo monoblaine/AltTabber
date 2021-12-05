@@ -7,6 +7,8 @@ extern void QuitOverlay();
 
 void MoveCursorOverActiveSlot()
 {
+    return;
+
     if(g_programState.activeSlot < 0) return;
 
     auto& r = g_programState.slots[g_programState.activeSlot].r;
