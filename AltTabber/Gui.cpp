@@ -246,75 +246,75 @@ void SetThumbnails()
     MonitorGeom_t mis = GetMonitorGeometry();
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
-            AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
+        AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
 
-            long x = ((long)j % l1) * ws + 3;
-            long y = ((long)j / l1) * hs + hs / 3 + 3;
-            long x1 = x + ws - 6;
-            long y1 = y + hs - hs / 3 - 6;
-            RECT r;
-            r.left = mi.extent.left - mis.r.left + x;
-            r.right = mi.extent.left - mis.r.left + x1;
-            r.top = mi.extent.top - mis.r.top + y;
-            r.bottom = mi.extent.top - mis.r.top + y1;
+        long x = ((long)j % l1) * ws + 3;
+        long y = ((long)j / l1) * hs + hs / 3 + 3;
+        long x1 = x + ws - 6;
+        long y1 = y + hs - hs / 3 - 6;
+        RECT r;
+        r.left = mi.extent.left - mis.r.left + x;
+        r.right = mi.extent.left - mis.r.left + x1;
+        r.top = mi.extent.top - mis.r.top + y;
+        r.bottom = mi.extent.top - mis.r.top + y1;
 
-            if(thumb.type == APP_THUMB_AERO) {
-                DWM_THUMBNAIL_PROPERTIES thProps;
-                thProps.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE;
+        if(thumb.type == APP_THUMB_AERO) {
+            DWM_THUMBNAIL_PROPERTIES thProps;
+            thProps.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE;
 
-                SIZE ws;
-                HRESULT haveThumbSize = DwmQueryThumbnailSourceSize(thumb.thumb, &ws);
-                if(haveThumbSize == S_OK) {
-                    SIZE rs;
-                    rs.cx = r.right - r.left;
-                    rs.cy = r.bottom - r.top;
+            SIZE ws;
+            HRESULT haveThumbSize = DwmQueryThumbnailSourceSize(thumb.thumb, &ws);
+            if(haveThumbSize == S_OK) {
+                SIZE rs;
+                rs.cx = r.right - r.left;
+                rs.cy = r.bottom - r.top;
 
-                    RECT dRect;
-                    dRect.left = r.left;
-                    dRect.top = r.top;
+                RECT dRect;
+                dRect.left = r.left;
+                dRect.top = r.top;
 
-                    float rRap = (float)rs.cx / (float)rs.cy;
-                    float sRap = (float)ws.cx / (float)ws.cy;
-                    if(sRap > rRap) {
-                        dRect.right = r.right;
-                        LONG h = (LONG)(rs.cx / sRap);
-                        LONG delta = (rs.cy - h) / 2;
+                float rRap = (float)rs.cx / (float)rs.cy;
+                float sRap = (float)ws.cx / (float)ws.cy;
+                if(sRap > rRap) {
+                    dRect.right = r.right;
+                    LONG h = (LONG)(rs.cx / sRap);
+                    LONG delta = (rs.cy - h) / 2;
 
-                        dRect.top += delta;
-                        dRect.bottom = dRect.top + h;
-                    } else {
-                        dRect.bottom = r.bottom;
-                        LONG w = (LONG)(rs.cy * sRap);
-                        LONG delta = (rs.cx - w) / 2;
-
-                        dRect.left += delta;
-                        dRect.right = dRect.left + w;
-                    }
-
-                    thProps.rcDestination = dRect;
+                    dRect.top += delta;
+                    dRect.bottom = dRect.top + h;
                 } else {
-                    thProps.rcDestination = r;
-                    log(_T("DwmQueryThumbnailSourceSize failed %d: errno %d\n"),
-                        haveThumbSize, GetLastError());
+                    dRect.bottom = r.bottom;
+                    LONG w = (LONG)(rs.cy * sRap);
+                    LONG delta = (rs.cx - w) / 2;
+
+                    dRect.left += delta;
+                    dRect.right = dRect.left + w;
                 }
-                thProps.fVisible = TRUE;
-                DwmUpdateThumbnailProperties(thumb.thumb, &thProps);
+
+                thProps.rcDestination = dRect;
+            } else {
+                thProps.rcDestination = r;
+                log(_T("DwmQueryThumbnailSourceSize failed %d: errno %d\n"),
+                    haveThumbSize, GetLastError());
             }
+            thProps.fVisible = TRUE;
+            DwmUpdateThumbnailProperties(thumb.thumb, &thProps);
+        }
 
-            if(thumb.hwnd == g_programState.prevActiveWindow) {
-                g_programState.activeSlot = (long)nthSlot;
-            }
+        if(thumb.hwnd == g_programState.prevActiveWindow) {
+            g_programState.activeSlot = (long)nthSlot;
+        }
 
-            SlotThing_t st;
-            st.hwnd = thumb.hwnd;
-            st.r.left = mi.extent.left - mis.r.left + (j % l1) * ws;
-            st.r.top = mi.extent.top - mis.r.top + ((long)j / l1) * hs;
-            st.r.right = st.r.left + ws;
-            st.r.bottom = st.r.top + hs;
-            st.moveUpDownAmount = l1;
-            g_programState.slots.push_back(st);
+        SlotThing_t st;
+        st.hwnd = thumb.hwnd;
+        st.r.left = mi.extent.left - mis.r.left + (j % l1) * ws;
+        st.r.top = mi.extent.top - mis.r.top + ((long)j / l1) * hs;
+        st.r.right = st.r.left + ws;
+        st.r.bottom = st.r.top + hs;
+        st.moveUpDownAmount = l1;
+        g_programState.slots.push_back(st);
 
-            ++nthSlot;
+        ++nthSlot;
     });
 
     if(g_programState.activeSlot < 0 && g_programState.slots.size() > 0) {
@@ -369,78 +369,78 @@ void OnPaint(HDC hdc)
     int prevBkMode = SetBkMode(hdc, TRANSPARENT);
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
-            AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
-            HWND hwnd = thumb.hwnd;
+        AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
+        HWND hwnd = thumb.hwnd;
 
-            long x = ((long)j % l1) * ws + 3;
-            long y = ((long)j / l1) * hs + 3;
-            long x1 = x + ws - 6;
-            long y1 = y + hs - 2 * hs / 3 - 6;
-            RECT r;
-            r.left = mi.extent.left - mis.r.left + x;
-            r.right = mi.extent.left - mis.r.left + x1;
-            r.top = mi.extent.top - mis.r.top + y;
-            r.bottom = mi.extent.top - mis.r.top + y1;
+        long x = ((long)j % l1) * ws + 3;
+        long y = ((long)j / l1) * hs + 3;
+        long x1 = x + ws - 6;
+        long y1 = y + hs - 2 * hs / 3 - 6;
+        RECT r;
+        r.left = mi.extent.left - mis.r.left + x;
+        r.right = mi.extent.left - mis.r.left + x1;
+        r.top = mi.extent.top - mis.r.top + y;
+        r.bottom = mi.extent.top - mis.r.top + y1;
 
-            TCHAR str[257];
-            GetWindowText(hwnd, str, 256);
-            std::wstring title(str);
+        TCHAR str[257];
+        GetWindowText(hwnd, str, 256);
+        std::wstring title(str);
 
-            Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-            r.left += 10;
-            r.right -= 10;
-            r.top += 10;
-            r.bottom -= 10;
+        Rectangle(hdc, r.left, r.top, r.right, r.bottom);
+        r.left += 10;
+        r.right -= 10;
+        r.top += 10;
+        r.bottom -= 10;
 
-            int maxHeight = r.bottom - r.top;
-            int rectHeight = DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT);
-            int topPadding = maxHeight - rectHeight;
+        int maxHeight = r.bottom - r.top;
+        int rectHeight = DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT);
+        int topPadding = maxHeight - rectHeight;
 
-            if (topPadding > 0) {
-                r.top += topPadding;
-                r.bottom += topPadding;
-            }
+        if (topPadding > 0) {
+            r.top += topPadding;
+            r.bottom += topPadding;
+        }
 
-            DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
+        DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
 
-            if(thumb.type == APP_THUMB_COMPAT) {
-                ICONINFO iconInfo;
-                auto hr = GetIconInfo(thumb.icon, &iconInfo);
-                if(!hr) {
-                    log(_T("GetIconInfo failed; errno %d\n"), GetLastError());
-                    DrawIcon(hdc, r.left + 3, r.bottom + 6, thumb.icon);
-                } else {
-                    BITMAP bmp;
-                    ZeroMemory(&bmp, sizeof(BITMAP));
-                    auto nBytes = GetObject(iconInfo.hbmMask, sizeof(BITMAP), &bmp);
-                    if(nBytes != sizeof(BITMAP)) {
-                        log(_T("failed to retrieve bitmap from hicon for %p; errno %d\n"),
-                            (void*)thumb.hwnd, GetLastError());
-                    }
-
-                    SIZE size = {
-                        bmp.bmWidth,
-                        bmp.bmHeight,
-                    };
-
-                    if(iconInfo.hbmColor != NULL) {
-                        size.cy /= 2;
-                    }
-
-                    log(_T("bitmap %p size: %ld x %ld\n"),
-                        (void*)thumb.icon, size.cx, size.cy);
-
-                    POINT location = {
-                        (r.right + r.left) / 2 - size.cx / 2,
-                        r.top + 2 * hs / 3 - size.cy,
-                    };
-
-                    DeleteBitmap(iconInfo.hbmColor);
-                    DeleteBitmap(iconInfo.hbmMask);
-
-                    DrawIcon(hdc, location.x, location.y, thumb.icon);
+        if(thumb.type == APP_THUMB_COMPAT) {
+            ICONINFO iconInfo;
+            auto hr = GetIconInfo(thumb.icon, &iconInfo);
+            if(!hr) {
+                log(_T("GetIconInfo failed; errno %d\n"), GetLastError());
+                DrawIcon(hdc, r.left + 3, r.bottom + 6, thumb.icon);
+            } else {
+                BITMAP bmp;
+                ZeroMemory(&bmp, sizeof(BITMAP));
+                auto nBytes = GetObject(iconInfo.hbmMask, sizeof(BITMAP), &bmp);
+                if(nBytes != sizeof(BITMAP)) {
+                    log(_T("failed to retrieve bitmap from hicon for %p; errno %d\n"),
+                        (void*)thumb.hwnd, GetLastError());
                 }
+
+                SIZE size = {
+                    bmp.bmWidth,
+                    bmp.bmHeight,
+                };
+
+                if(iconInfo.hbmColor != NULL) {
+                    size.cy /= 2;
+                }
+
+                log(_T("bitmap %p size: %ld x %ld\n"),
+                    (void*)thumb.icon, size.cx, size.cy);
+
+                POINT location = {
+                    (r.right + r.left) / 2 - size.cx / 2,
+                    r.top + 2 * hs / 3 - size.cy,
+                };
+
+                DeleteBitmap(iconInfo.hbmColor);
+                DeleteBitmap(iconInfo.hbmMask);
+
+                DrawIcon(hdc, location.x, location.y, thumb.icon);
             }
+        }
     });
 
     DeleteObject(font);
