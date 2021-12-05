@@ -177,7 +177,7 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     // SetWindowPos(hWnd, HWND_TOPMOST, geom.x, geom.y, geom.cx, geom.cy);
 
     hWnd = CreateWindowEx(
-            WS_EX_TOPMOST | WS_EX_COMPOSITED | WS_EX_LAYERED,
+            WS_EX_TOPMOST | WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TOOLWINDOW,
             szWindowClass,
             szTitle,
             WS_POPUP,
