@@ -399,7 +399,17 @@ void OnPaint(HDC hdc)
             r.right -= 10;
             r.top += 10;
             r.bottom -= 10;
-            DrawText(hdc, str, -1, &r, DT_BOTTOM | DT_LEFT | DT_WORDBREAK);
+
+            int maxHeight = r.bottom - r.top;
+            int rectHeight = DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT);
+            int topPadding = maxHeight - rectHeight;
+
+            if (topPadding > 0) {
+                r.top += topPadding;
+                r.bottom += topPadding;
+            }
+
+            DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
 
             if(thumb.type == APP_THUMB_COMPAT) {
                 ICONINFO iconInfo;
