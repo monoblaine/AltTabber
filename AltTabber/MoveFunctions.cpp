@@ -57,7 +57,7 @@ static void MoveNextGeographically(POINT p)
         speculant.x, speculant.y);
     RECT wr;
     (void) GetWindowRect(g_programState.hWnd, &wr);
-    speculant.x = 
+    speculant.x =
             p.x * 5
             + (p.x > 0) * 0
             + (p.x < 0) * (wr.right - wr.left)
@@ -69,17 +69,17 @@ static void MoveNextGeographically(POINT p)
             + (p.y < 0) * (wr.bottom - wr.top)
             + (!p.y) * ( (r.top + r.bottom) / 2l)
         ;
-    
+
     auto found2 = std::find_if(slots.begin(), slots.end(),
         [&speculant](SlotThing_t& s) -> bool {
             return PtInRect(&s.r, speculant) != FALSE;
         });
-    
+
     if(found2 != slots.end()) {
         g_programState.activeSlot = (long)(found2 - slots.begin());
         return;
     }
-    
+
     log(_T("could not find a slot speculating at %ld %ld, silently failing\n"),
         speculant.x, speculant.y);
 }

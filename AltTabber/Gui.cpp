@@ -13,7 +13,7 @@ static inline BOOL IsAltTabWindow(HWND hwnd)
 
     TCHAR str[MAX_PATH + 1];
     GetWindowText(hwnd, str, MAX_PATH);
-    
+
     log(_T("window %ls has style %lX and exstyle %lX\n"),
         str,
         GetWindowLong(hwnd, GWL_STYLE),
@@ -25,11 +25,11 @@ static inline BOOL IsAltTabWindow(HWND hwnd)
     // showing up; I've opted to hide all of them.
     HWND hwndTry, hwndWalk = NULL;
     hwndTry = GetAncestor(hwnd, GA_ROOTOWNER);
-    while(hwndTry != hwndWalk) 
+    while(hwndTry != hwndWalk)
     {
         hwndWalk = hwndTry;
         hwndTry = GetLastActivePopup(hwndWalk);
-        if(IsWindowVisible(hwndTry)) 
+        if(IsWindowVisible(hwndTry))
             break;
     }
     if(hwndWalk != hwnd)
@@ -223,11 +223,11 @@ void PerformSlotting(F&& functor)
         auto& mi = mis.monitors[i];
         auto& thumbs = g_programState.thumbnails[mi.hMonitor];
         auto nWindows = thumbs.size();
-        
+
         unsigned int nTiles = 1;
         while(nTiles < nWindows) nTiles <<= 1;
         if(nTiles != nWindows) nTiles = max(1, nTiles >> 1);
-        
+
         long lala = (long)(sqrt((double)nTiles) + 0.5);
 
         long l1 = lala;
@@ -345,11 +345,11 @@ void OnPaint(HDC hdc)
             fSize, 0, 0, 0, 0, 0, 0, 0,
             DEFAULT_CHARSET,
             OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-            CLEARTYPE_QUALITY, 
+            CLEARTYPE_QUALITY,
             DEFAULT_PITCH | FF_DONTCARE,
             _T("Courier New"));
     HFONT originalFont = (HFONT)SelectObject(hdc, font);
-    
+
     auto mis = GetMonitorGeometry();
     SetDCBrushColor(hdc, RGB(0, 0, 0));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
@@ -379,7 +379,7 @@ void OnPaint(HDC hdc)
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
             AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
             HWND hwnd = thumb.hwnd;
-            
+
             long x = ((long)j % l1) * ws + 3;
             long y = ((long)j / l1) * hs + 3;
             long x1 = x + ws - 6;
@@ -389,7 +389,7 @@ void OnPaint(HDC hdc)
             r.right = mi.extent.left - mis.r.left + x1;
             r.top = mi.extent.top - mis.r.top + y;
             r.bottom = mi.extent.top - mis.r.top + y1;
-            
+
             TCHAR str[257];
             GetWindowText(hwnd, str, 256);
             std::wstring title(str);
@@ -415,8 +415,8 @@ void OnPaint(HDC hdc)
                         log(_T("failed to retrieve bitmap from hicon for %p; errno %d\n"),
                             (void*)thumb.hwnd, GetLastError());
                     }
-                    
-                    SIZE size = { 
+
+                    SIZE size = {
                         bmp.bmWidth,
                         bmp.bmHeight,
                     };

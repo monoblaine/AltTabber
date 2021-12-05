@@ -36,7 +36,7 @@ extern void PurgeThumbnails();
 extern void CreateThumbnails(std::wstring const&);
 extern void SetThumbnails();
 extern void OnPaint(HDC);
-extern void MoveCursorOverActiveSlot(); 
+extern void MoveCursorOverActiveSlot();
 
 ProgramState_t g_programState = {
     /*showing=*/FALSE,
@@ -74,11 +74,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// TODO still not clear if I still need to call this
-	//      or not, given that the manifest says this is
-	//      dpi aware. Hope to some day figure out if this
-	//      is needed/or not/or harmless
-	SetProcessDPIAware();
+    // TODO still not clear if I still need to call this
+    //      or not, given that the manifest says this is
+    //      dpi aware. Hope to some day figure out if this
+    //      is needed/or not/or harmless
+    SetProcessDPIAware();
 
     MSG msg;
     HACCEL hAccelTable;
@@ -112,7 +112,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 static inline void Cleanup()
 {
     PurgeThumbnails();
-    
+
     if(g_programState.freopened != NULL) fclose(g_programState.freopened);
 
     NOTIFYICONDATA nid;
@@ -179,7 +179,7 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     hWnd = CreateWindowEx(
             WS_EX_TOPMOST | WS_EX_COMPOSITED | WS_EX_LAYERED,
             szWindowClass,
-            szTitle, 
+            szTitle,
             WS_POPUP,
             geom.r.left, geom.r.top,
             geom.r.right - geom.r.left, geom.r.bottom - geom.r.top,
@@ -266,7 +266,7 @@ BOOL InitInstance(HINSTANCE hInstance, int)
 }
 
 static void ShowContextMenu(int x, int y)
-{    
+{
     if(g_programState.activeSlot >= 0
         && (unsigned long)g_programState.activeSlot < g_programState.slots.size())
     {
@@ -289,7 +289,7 @@ static void ShowContextMenu(int x, int y)
             AppendMenu(ctxMenu, MF_STRING | MF_DISABLED, 0, _T("Window is minimized"));
         }
 
-        TrackPopupMenu(ctxMenu, 
+        TrackPopupMenu(ctxMenu,
             TPM_RIGHTBUTTON,
             x, y,
             0, g_programState.hWnd, NULL);
@@ -307,7 +307,7 @@ static inline void NotificationAreaMenu(POINT location)
     AppendMenu(ctxMenu, MF_STRING, MY_TRAY_OPEN_BTN_ID, _T("&Open"));
     AppendMenu(ctxMenu, MF_SEPARATOR, 0, NULL);
     AppendMenu(ctxMenu, MF_STRING, MY_TRAY_CLOSE_BTN_ID, _T("E&xit"));
-    TrackPopupMenu(ctxMenu, 
+    TrackPopupMenu(ctxMenu,
         TPM_RIGHTBUTTON,
         location.x, location.y,
         0, g_programState.hWnd, NULL);
@@ -321,7 +321,7 @@ void MoveToMonitor(unsigned int monitor)
     HWND hwnd = g_programState.slots[g_programState.activeSlot].hwnd;
     auto mis = GetMonitorGeometry();
     auto mi = mis.monitors[monitor];
-    
+
     WINDOWPLACEMENT wpl;
     wpl.length = sizeof(WINDOWPLACEMENT);
     GetWindowPlacement(hwnd, &wpl);
@@ -605,7 +605,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 g_programState.filter =
                     g_programState.filter.substr(
                             0, g_programState.filter.size() - 1);
-                
+
                 CreateThumbnails(g_programState.filter);
                 SetThumbnails();
                 RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE);
