@@ -395,10 +395,10 @@ void OnPaint(HDC hdc)
             std::wstring title(str);
 
             Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-            r.left += 3;
-            r.right -= 6;
-            r.top += 3;
-            r.bottom -= 6;
+            r.left += 10;
+            r.right -= 10;
+            r.top += 10;
+            r.bottom -= 10;
             DrawText(hdc, str, -1, &r, DT_BOTTOM | DT_LEFT | DT_WORDBREAK);
 
             if(thumb.type == APP_THUMB_COMPAT) {
