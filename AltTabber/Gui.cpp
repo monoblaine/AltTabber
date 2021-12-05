@@ -338,7 +338,7 @@ void OnPaint(HDC hdc)
     auto originalBrush = SelectObject(hdc, GetStockObject(DC_BRUSH));
     SelectObject(hdc, GetStockObject(DC_BRUSH));
 
-    LONG fSize = 12l;
+    LONG fSize = 14l;
     fSize = MulDiv(fSize, GetDeviceCaps(hdc, LOGPIXELSY), 72);
     if(fSize != 12l) log(_T("font size scaled to %ld\n"), fSize);
     HFONT font = CreateFont(
