@@ -39,6 +39,7 @@ typedef struct {
     BOOL resetOnClose;
 
     HWND hWnd;
+    std::map<HMONITOR, std::vector<AppThumb_t> > icons;
     std::map<HMONITOR, std::vector<AppThumb_t> > thumbnails;
     std::vector<SlotThing_t> slots;
     std::wstring filter;

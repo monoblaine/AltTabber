@@ -127,70 +127,90 @@ static BOOL CALLBACK enumWindows(HWND hwnd, LPARAM lParam)
             (void*)hwnd,
             (void*)hMonitor,
             hr);
-    if(hr == S_OK) {
-        AppThumb_t at = {
-            APP_THUMB_AERO,
-            hwnd,
-        };
-        at.thumb = hThumb;
-        g_programState.thumbnails[hMonitor].push_back(at);
-    } else {
-        AppThumb_t at = {
-            APP_THUMB_COMPAT,
-            hwnd,
-        };
-        HICON hIcon = NULL;
-        // #1 try to get via getclasslong
-        hIcon = (HICON)GetClassLongPtr(hwnd, GCLP_HICON);
-        if(!hIcon) {
-            // #2 try to get via WM_GETICON
-            DWORD_PTR lresult;
-            UINT sleepAmount = (g_programState.sleptThroughNWindows < 5)
-                ? 50
-                : (g_programState.sleptThroughNWindows < 10)
-                    ? 25
-                    : (g_programState.sleptThroughNWindows < 20)
-                    ? 10
-                    : 5;
-            auto hr = SendMessageTimeout(hwnd, WM_GETICON, ICON_BIG, 0,
-                SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT,
-                sleepAmount /*ms*/,
-                &lresult);
-            if(hr) {
-                g_programState.sleptThroughNWindows++;
-                hIcon = (HICON)lresult;
-            } else {
-                log(_T("Sending WM_GETICON to %ld failed; lresult %ld errno %d\n"),
-                    hwnd, lresult, GetLastError());
-            }
+
+    AppThumb_t aeroThumb = {
+        APP_THUMB_AERO,
+        hwnd,
+    };
+    aeroThumb.thumb = hr == S_OK ? hThumb : NULL;
+    g_programState.thumbnails[hMonitor].push_back(aeroThumb);
+
+    AppThumb_t icon = {
+        APP_THUMB_COMPAT,
+        hwnd,
+    };
+    HICON hIcon = NULL;
+    // #1 try to get via getclasslong
+    hIcon = (HICON)GetClassLongPtr(hwnd, GCLP_HICON);
+    if(!hIcon) {
+        // #2 try to get via WM_GETICON
+        DWORD_PTR lresult;
+        UINT sleepAmount = (g_programState.sleptThroughNWindows < 5)
+            ? 50
+            : (g_programState.sleptThroughNWindows < 10)
+                ? 25
+                : (g_programState.sleptThroughNWindows < 20)
+                ? 10
+                : 5;
+        auto hr = SendMessageTimeout(hwnd, WM_GETICON, ICON_BIG, 0,
+            SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT,
+            sleepAmount /*ms*/,
+            &lresult);
+        if(hr) {
+            g_programState.sleptThroughNWindows++;
+            hIcon = (HICON)lresult;
+        } else {
+            log(_T("Sending WM_GETICON to %ld failed; lresult %ld errno %d\n"),
+                hwnd, lresult, GetLastError());
         }
-        at.icon = hIcon;
-        g_programState.thumbnails[hMonitor].push_back(at);
     }
+    icon.icon = hIcon;
+    g_programState.icons[hMonitor].push_back(icon);
 
     return TRUE;
 }
 
 void PurgeThumbnails()
 {
-    for(auto i = g_programState.thumbnails.begin();
-            i != g_programState.thumbnails.end();
-            ++i)
-    {
+    for(auto i = g_programState.thumbnails.begin(); i != g_programState.thumbnails.end(); ++i) {
         auto thumbs = i->second;
         decltype(thumbs) rest(thumbs.size());
+
         std::remove_copy_if(
-                thumbs.begin(), thumbs.end(),
-                std::inserter(rest, rest.end()),
-                [](AppThumb_t const& thumb) -> bool {
-                    return thumb.type != APP_THUMB_AERO;
-                });
-        std::for_each(rest.begin(), rest.end(),
-                [](AppThumb_t const& thumb) {
+            thumbs.begin(),
+            thumbs.end(),
+            std::inserter(rest, rest.end()),
+            [](AppThumb_t const& thumb) -> bool {
+                return thumb.thumb == NULL;
+            }
+        );
+        std::for_each(
+            rest.begin(),
+            rest.end(),
+            [](AppThumb_t const& thumb) {
+                if (thumb.thumb != NULL) {
                     DwmUnregisterThumbnail(thumb.thumb);
-                });
+                }
+            }
+        );
     }
+
     g_programState.thumbnails.clear();
+
+    for (auto i = g_programState.icons.begin(); i != g_programState.icons.end(); ++i) {
+        auto thumbs = i->second;
+        decltype(thumbs) rest(thumbs.size());
+
+        std::for_each(
+            rest.begin(),
+            rest.end(),
+            [](AppThumb_t const& thumb) {
+                DwmUnregisterThumbnail(thumb.thumb);
+            }
+        );
+    }
+
+    g_programState.icons.clear();
 }
 
 void CreateThumbnails(std::wstring const& filter)
@@ -213,7 +233,7 @@ void PerformSlotting(F&& functor)
     auto mis = GetMonitorGeometry();
     for(size_t i = 0; i < mis.monitors.size(); ++i) {
         auto& mi = mis.monitors[i];
-        auto& thumbs = g_programState.thumbnails[mi.hMonitor];
+        auto& thumbs = g_programState.icons[mi.hMonitor];
         auto nWindows = thumbs.size();
 
         unsigned int nTiles = 1;
@@ -258,7 +278,7 @@ void SetThumbnails()
         r.top = mi.extent.top - mis.r.top + y;
         r.bottom = mi.extent.top - mis.r.top + y1;
 
-        if(thumb.type == APP_THUMB_AERO) {
+        if(thumb.thumb != NULL) {
             DWM_THUMBNAIL_PROPERTIES thProps;
             thProps.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE;
 
@@ -322,6 +342,54 @@ void SetThumbnails()
     }
 }
 
+void DrawAppIcon(AppThumb_t& thumb, const HDC& hdc, RECT& r, long hs, bool forBottomRect)
+{
+    ICONINFO iconInfo;
+    auto hr = GetIconInfo(thumb.icon, &iconInfo);
+
+    if (!hr) {
+        log(_T("GetIconInfo failed; errno %d\n"), GetLastError());
+        DrawIcon(hdc, r.left + 3, r.bottom + 6, thumb.icon);
+        return;
+    }
+
+    BITMAP bmp;
+    ZeroMemory(&bmp, sizeof(BITMAP));
+    auto nBytes = GetObject(iconInfo.hbmMask, sizeof(BITMAP), &bmp);
+
+    if (nBytes != sizeof(BITMAP)) {
+        log(_T("failed to retrieve bitmap from hicon for %p; errno %d\n"), (void*)thumb.hwnd, GetLastError());
+    }
+
+    SIZE size = {
+        bmp.bmWidth,
+        bmp.bmHeight,
+    };
+
+    if (iconInfo.hbmColor != NULL) {
+        size.cy /= 2;
+    }
+
+    log(_T("bitmap %p size: %ld x %ld\n"), (void*)thumb.icon, size.cx, size.cy);
+
+    POINT location;
+
+    if (forBottomRect) {
+        location = {
+            (r.right + r.left) / 2 - size.cx / 2,
+            r.top + 2 * hs / 3 - size.cy,
+        };
+    }
+    else {
+        location = { r.left, r.top };
+    }
+
+    DeleteBitmap(iconInfo.hbmColor);
+    DeleteBitmap(iconInfo.hbmMask);
+
+    DrawIcon(hdc, location.x, location.y, thumb.icon);
+}
+
 void OnPaint(HDC hdc)
 {
     HGDIOBJ original = NULL;
@@ -370,6 +438,11 @@ void OnPaint(HDC hdc)
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
         AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
+
+        if (thumb.thumb == NULL) {
+            thumb = g_programState.icons[mi.hMonitor][j];
+        }
+
         HWND hwnd = thumb.hwnd;
 
         long x = ((long)j % l1) * ws + 3;
@@ -403,43 +476,18 @@ void OnPaint(HDC hdc)
 
         DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
 
+        if (topPadding > 0) {
+            r.top -= topPadding;
+            r.bottom -= topPadding;
+        }
+
+        DrawAppIcon(
+            thumb.type == APP_THUMB_COMPAT ? thumb : g_programState.icons[mi.hMonitor][j],
+            hdc, r, hs, FALSE
+        );
+
         if(thumb.type == APP_THUMB_COMPAT) {
-            ICONINFO iconInfo;
-            auto hr = GetIconInfo(thumb.icon, &iconInfo);
-            if(!hr) {
-                log(_T("GetIconInfo failed; errno %d\n"), GetLastError());
-                DrawIcon(hdc, r.left + 3, r.bottom + 6, thumb.icon);
-            } else {
-                BITMAP bmp;
-                ZeroMemory(&bmp, sizeof(BITMAP));
-                auto nBytes = GetObject(iconInfo.hbmMask, sizeof(BITMAP), &bmp);
-                if(nBytes != sizeof(BITMAP)) {
-                    log(_T("failed to retrieve bitmap from hicon for %p; errno %d\n"),
-                        (void*)thumb.hwnd, GetLastError());
-                }
-
-                SIZE size = {
-                    bmp.bmWidth,
-                    bmp.bmHeight,
-                };
-
-                if(iconInfo.hbmColor != NULL) {
-                    size.cy /= 2;
-                }
-
-                log(_T("bitmap %p size: %ld x %ld\n"),
-                    (void*)thumb.icon, size.cx, size.cy);
-
-                POINT location = {
-                    (r.right + r.left) / 2 - size.cx / 2,
-                    r.top + 2 * hs / 3 - size.cy,
-                };
-
-                DeleteBitmap(iconInfo.hbmColor);
-                DeleteBitmap(iconInfo.hbmMask);
-
-                DrawIcon(hdc, location.x, location.y, thumb.icon);
-            }
+            DrawAppIcon(thumb, hdc, r, hs, TRUE);
         }
     });
 
