@@ -351,7 +351,7 @@ void OnPaint(HDC hdc)
     HFONT originalFont = (HFONT)SelectObject(hdc, font);
 
     auto mis = GetMonitorGeometry();
-    SetDCBrushColor(hdc, RGB(0, 0, 0));
+    SetDCBrushColor(hdc, RGB(0x99, 0x99, 0x99));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
     //auto hrRectangle = Rectangle(hdc, 0, 0, mis.r.right - mis.r.left, mis.r.bottom - mis.r.top);
     //log(_T("rectangle returned %d: errno %d\n"), hrRectangle, GetLastError());
@@ -361,7 +361,7 @@ void OnPaint(HDC hdc)
     auto hrRectangle = Rectangle(hdc, 0, 0, winRect.right - winRect.left, winRect.bottom - winRect.top);
     log(_T("rectangle returned %d: errno %d\n"), hrRectangle, GetLastError());
 
-    SetDCBrushColor(hdc, RGB(255, 0, 0));
+    SetDCBrushColor(hdc, RGB(0, 0, 0));
 
     //for(size_t i = 0; i < g_programState.slots.size(); ++i) {
     //    RECT r = (g_programState.slots[i].r);
