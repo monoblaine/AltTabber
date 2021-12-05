@@ -100,20 +100,14 @@ void MoveNext(DWORD direction)
     switch(direction)
     {
         case VK_TAB:
+        case VK_RIGHT:
             g_programState.activeSlot++;
             log(_T("by %d\n"), 1);
             break;
         case VK_BACK:
+        case VK_LEFT:
             g_programState.activeSlot--;
             log(_T("by %d\n"), -1);
-            break;
-        case VK_LEFT:
-            p.x = -1;
-            MoveNextGeographically(p);
-            break;
-        case VK_RIGHT:
-            p.x = 1;
-            MoveNextGeographically(p);
             break;
         case VK_UP:
             p.y = -1;
