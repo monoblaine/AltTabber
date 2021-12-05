@@ -6,62 +6,54 @@ extern ProgramState_t g_programState;
 extern void log(LPTSTR fmt, ...);
 extern MonitorGeom_t GetMonitorGeometry();
 
-static inline BOOL IsAltTabWindow(HWND hwnd)
+/// <summary>
+/// Reference: https://stackoverflow.com/a/33577647/1396155
+/// </summary>
+/// <param name="hWnd"></param>
+/// <returns></returns>
+static inline BOOL IsWindowReallyVisible(HWND hWnd)
 {
-    if(!IsWindowVisible(hwnd))
+    if (!IsWindowVisible(hWnd))
         return FALSE;
 
-    TCHAR str[MAX_PATH + 1];
-    GetWindowText(hwnd, str, MAX_PATH);
+    int CloakedVal;
+    HRESULT hRes = DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &CloakedVal, sizeof(CloakedVal));
+    if (hRes != S_OK)
+    {
+        CloakedVal = 0;
+    }
+    return CloakedVal ? FALSE : TRUE;
+}
 
-    log(_T("window %ls has style %lX and exstyle %lX\n"),
-        str,
-        GetWindowLong(hwnd, GWL_STYLE),
-        GetWindowLong(hwnd, GWL_EXSTYLE));
-    log(_T("parent: %p\n"), GetParent(hwnd));
-
-    // this prevents stuff like the copy file dialog from showing up
-    // but it also prevents stuff like tunngle's border windows from
-    // showing up; I've opted to hide all of them.
+static inline BOOL IsAltTabWindow(HWND hwnd)
+{
+    TITLEBARINFO ti;
     HWND hwndTry, hwndWalk = NULL;
+
+    if(!IsWindowReallyVisible(hwnd))
+        return FALSE;
+
     hwndTry = GetAncestor(hwnd, GA_ROOTOWNER);
     while(hwndTry != hwndWalk)
     {
         hwndWalk = hwndTry;
         hwndTry = GetLastActivePopup(hwndWalk);
-        if(IsWindowVisible(hwndTry))
+        if(IsWindowReallyVisible(hwndTry))
             break;
     }
     if(hwndWalk != hwnd)
         return FALSE;
-
-    // this prevents borderless windows from showing up (like steam or remote desktop)
-#if 0
-    TITLEBARINFO ti;
 
     // the following removes some task tray programs and "Program Manager"
     ti.cbSize = sizeof(ti);
     GetTitleBarInfo(hwnd, &ti);
     if(ti.rgstate[0] & STATE_SYSTEM_INVISIBLE)
         return FALSE;
-#endif
 
     // Tool windows should not be displayed either, these do not appear in the
     // task bar.
     if(GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
         return FALSE;
-
-    if(GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD)
-        return FALSE;
-#if 0
-    LONG style = GetWindowLong(hwnd, GWL_EXSTYLE);
-    if((style & (WS_VISIBLE | WS_EX_TOOLWINDOW | WS_POPUP | WS_CAPTION
-        | WS_DLGFRAME | WS_OVERLAPPED | WS_TILED | WS_SYSMENU | WS_THICKFRAME
-        )) == 0)
-    {
-        return FALSE;
-    }
-#endif
 
     return TRUE;
 }
