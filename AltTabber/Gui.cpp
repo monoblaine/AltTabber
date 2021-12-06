@@ -428,7 +428,7 @@ void OnPaint(HDC hdc)
     }
 
     SelectObject(hdc, GetStockObject(DC_BRUSH));
-    SetDCBrushColor(hdc, RGB(0xcc, 0xcc, 0xcc));
+    SetDCBrushColor(hdc, RGB(0xaa, 0xaa, 0xaa));
     SelectObject(hdc, GetStockObject(BLACK_PEN));
     int prevBkMode = SetBkMode(hdc, TRANSPARENT);
 
@@ -459,7 +459,7 @@ void OnPaint(HDC hdc)
             SelectObject(hdc, GetStockObject(WHITE_BRUSH));
             Rectangle(hdc, r.left, r.top, r.right, r.bottom);
             SelectObject(hdc, GetStockObject(DC_BRUSH));
-            SetDCBrushColor(hdc, RGB(0xcc, 0xcc, 0xcc));
+            SetDCBrushColor(hdc, RGB(0xaa, 0xaa, 0xaa));
         }
         else {
             Rectangle(hdc, r.left, r.top, r.right, r.bottom);
