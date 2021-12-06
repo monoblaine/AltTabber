@@ -421,9 +421,8 @@ void OnPaint(HDC hdc)
     auto hrRectangle = Rectangle(hdc, 0, 0, winRect.right - winRect.left, winRect.bottom - winRect.top);
     log(_T("rectangle returned %d: errno %d\n"), hrRectangle, GetLastError());
 
-    SetDCBrushColor(hdc, RGB(0, 0, 0));
-
     if(g_programState.activeSlot >= 0) {
+        SetDCBrushColor(hdc, RGB(0, 0, 0));
         RECT r = (g_programState.slots[g_programState.activeSlot]).r;
         Rectangle(hdc, r.left, r.top, r.right, r.bottom);
     }
