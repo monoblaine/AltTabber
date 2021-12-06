@@ -268,10 +268,10 @@ void SetThumbnails()
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
         AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
 
-        long x = ((long)j % l1) * ws + 3;
-        long y = ((long)j / l1) * hs + hs / 3 + 3;
-        long x1 = x + ws - 6;
-        long y1 = y + hs - hs / 3 - 6;
+        long x = ((long)j % l1) * ws + 10 + 10;
+        long y = ((long)j / l1) * hs + 10 + (hs - 20) / 3 + 10;
+        long x1 = x + ws - 40;
+        long y1 = y + hs - 40 - (hs - 20) / 3;
         RECT r;
         r.left = mi.extent.left - mis.r.left + x;
         r.right = mi.extent.left - mis.r.left + x1;
@@ -354,7 +354,7 @@ void DrawAppIcon(AppThumb_t& thumb, const HDC& hdc, RECT& r, long hs, bool forBo
 
     if (!hr) {
         log(_T("GetIconInfo failed; errno %d\n"), GetLastError());
-        DrawIcon(hdc, r.left + 3, r.bottom + 6, thumb.icon);
+        DrawIcon(hdc, r.left + 10, r.bottom + 20, thumb.icon);
         return;
     }
 
@@ -395,12 +395,20 @@ void DrawAppIcon(AppThumb_t& thumb, const HDC& hdc, RECT& r, long hs, bool forBo
     DrawIcon(hdc, location.x, location.y, thumb.icon);
 }
 
+static inline void SetRectColor(const HDC& hdc, const COLORREF& color)
+{
+    SelectObject(hdc, GetStockObject(DC_PEN));
+    SetDCPenColor(hdc, color);
+    SelectObject(hdc, GetStockObject(DC_BRUSH));
+    SetDCBrushColor(hdc, color);
+}
+
 void OnPaint(HDC hdc)
 {
     auto originalPen = SelectObject(hdc, GetStockObject(DC_PEN));
     auto originalBrush = SelectObject(hdc, GetStockObject(DC_BRUSH));
 
-    LONG fSize = 14l;
+    LONG fSize = 12l;
     fSize = MulDiv(fSize, GetDeviceCaps(hdc, LOGPIXELSY), 72);
     if(fSize != 12l) log(_T("font size scaled to %ld\n"), fSize);
     HFONT font = CreateFont(
@@ -413,7 +421,8 @@ void OnPaint(HDC hdc)
     HFONT originalFont = (HFONT)SelectObject(hdc, font);
 
     auto mis = GetMonitorGeometry();
-    SetDCBrushColor(hdc, RGB(0x99, 0x99, 0x99));
+
+    SetRectColor(hdc, RGB(0xcc, 0xcc, 0xcc));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
     RECT winRect;
     GetWindowRect(g_programState.hWnd, &winRect);
@@ -421,18 +430,19 @@ void OnPaint(HDC hdc)
     auto hrRectangle = Rectangle(hdc, 0, 0, winRect.right - winRect.left, winRect.bottom - winRect.top);
     log(_T("rectangle returned %d: errno %d\n"), hrRectangle, GetLastError());
 
-    if(g_programState.activeSlot >= 0) {
-        SetDCBrushColor(hdc, RGB(0, 0, 0));
-        RECT r = (g_programState.slots[g_programState.activeSlot]).r;
-        Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-    }
-
-    SelectObject(hdc, GetStockObject(DC_BRUSH));
-    SetDCBrushColor(hdc, RGB(0xaa, 0xaa, 0xaa));
-    SelectObject(hdc, GetStockObject(BLACK_PEN));
     int prevBkMode = SetBkMode(hdc, TRANSPARENT);
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
+        SetRectColor(hdc, j == g_programState.activeSlot ? RGB(0xff, 0xff, 0xff) : RGB(0xbb, 0xbb, 0xbb));
+        RECT container = (g_programState.slots[j]).r;
+
+        container.left += 10;
+        container.top += 10;
+        container.right -= 10;
+        container.bottom -= 10;
+
+        Rectangle(hdc, container.left, container.top, container.right, container.bottom);
+
         AppThumb_t& thumb = g_programState.thumbnails[mi.hMonitor][j];
 
         if (thumb.thumb == NULL) {
@@ -441,10 +451,10 @@ void OnPaint(HDC hdc)
 
         HWND hwnd = thumb.hwnd;
 
-        long x = ((long)j % l1) * ws + 3;
-        long y = ((long)j / l1) * hs + 3;
-        long x1 = x + ws - 6;
-        long y1 = y + hs - 2 * hs / 3 - 6;
+        long x = ((long)j % l1) * ws + 10;
+        long y = ((long)j / l1) * hs + 10;
+        long x1 = x + ws - 20;
+        long y1 = y + hs - 20 - 2 * (hs - 20) / 3;
         RECT r;
         r.left = mi.extent.left - mis.r.left + x;
         r.right = mi.extent.left - mis.r.left + x1;
@@ -454,16 +464,6 @@ void OnPaint(HDC hdc)
         TCHAR str[257];
         GetWindowText(hwnd, str, 256);
         std::wstring title(str);
-
-        if (j == g_programState.activeSlot) {
-            SelectObject(hdc, GetStockObject(WHITE_BRUSH));
-            Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-            SelectObject(hdc, GetStockObject(DC_BRUSH));
-            SetDCBrushColor(hdc, RGB(0xaa, 0xaa, 0xaa));
-        }
-        else {
-            Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-        }
 
         r.left += 10;
         r.right -= 10;
@@ -490,6 +490,11 @@ void OnPaint(HDC hdc)
             thumb.type == APP_THUMB_COMPAT ? thumb : g_programState.icons[mi.hMonitor][j],
             hdc, r, hs, FALSE
         );
+
+        r.left -= 10;
+        r.right += 10;
+        r.top -= 10;
+        r.bottom += 10;
 
         if(thumb.type == APP_THUMB_COMPAT) {
             DrawAppIcon(thumb, hdc, r, hs, TRUE);
