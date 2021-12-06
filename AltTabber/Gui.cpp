@@ -397,8 +397,8 @@ void DrawAppIcon(AppThumb_t& thumb, const HDC& hdc, RECT& r, long hs, bool forBo
 
 void OnPaint(HDC hdc)
 {
-    HGDIOBJ original = NULL;
-    original = SelectObject(hdc, GetStockObject(DC_PEN));
+    HGDIOBJ originalPen = NULL;
+    originalPen = SelectObject(hdc, GetStockObject(DC_PEN));
     //HPEN pen = CreatePen(PS_SOLID, 5, RGB(0, 255, 0));
     auto originalBrush = SelectObject(hdc, GetStockObject(DC_BRUSH));
     SelectObject(hdc, GetStockObject(DC_BRUSH));
@@ -500,5 +500,5 @@ void OnPaint(HDC hdc)
     SetBkMode(hdc, prevBkMode);
     SelectObject(hdc, originalFont);
     SelectObject(hdc, originalBrush);
-    SelectObject(hdc, original);
+    SelectObject(hdc, originalPen);
 }
