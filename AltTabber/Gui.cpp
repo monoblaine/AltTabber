@@ -397,11 +397,8 @@ void DrawAppIcon(AppThumb_t& thumb, const HDC& hdc, RECT& r, long hs, bool forBo
 
 void OnPaint(HDC hdc)
 {
-    HGDIOBJ originalPen = NULL;
-    originalPen = SelectObject(hdc, GetStockObject(DC_PEN));
-    //HPEN pen = CreatePen(PS_SOLID, 5, RGB(0, 255, 0));
+    auto originalPen = SelectObject(hdc, GetStockObject(DC_PEN));
     auto originalBrush = SelectObject(hdc, GetStockObject(DC_BRUSH));
-    SelectObject(hdc, GetStockObject(DC_BRUSH));
 
     LONG fSize = 14l;
     fSize = MulDiv(fSize, GetDeviceCaps(hdc, LOGPIXELSY), 72);
