@@ -415,8 +415,6 @@ void OnPaint(HDC hdc)
     auto mis = GetMonitorGeometry();
     SetDCBrushColor(hdc, RGB(0x99, 0x99, 0x99));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
-    //auto hrRectangle = Rectangle(hdc, 0, 0, mis.r.right - mis.r.left, mis.r.bottom - mis.r.top);
-    //log(_T("rectangle returned %d: errno %d\n"), hrRectangle, GetLastError());
     RECT winRect;
     GetWindowRect(g_programState.hWnd, &winRect);
     log(_T("window rect %ld %ld %ld %ld\n"), winRect.left, winRect.top, winRect.right, winRect.bottom);
@@ -425,10 +423,6 @@ void OnPaint(HDC hdc)
 
     SetDCBrushColor(hdc, RGB(0, 0, 0));
 
-    //for(size_t i = 0; i < g_programState.slots.size(); ++i) {
-    //    RECT r = (g_programState.slots[i].r);
-    //    Rectangle(hdc, r.left, r.top, r.right, r.bottom);
-    //}
     if(g_programState.activeSlot >= 0) {
         RECT r = (g_programState.slots[g_programState.activeSlot]).r;
         Rectangle(hdc, r.left, r.top, r.right, r.bottom);
