@@ -5,21 +5,6 @@ extern ProgramState_t g_programState;
 extern void log(LPTSTR fmt, ...);
 extern void QuitOverlay();
 
-void MoveCursorOverActiveSlot()
-{
-    return;
-
-    if(g_programState.activeSlot < 0) return;
-
-    auto& r = g_programState.slots[g_programState.activeSlot].r;
-    POINT moveHere = {
-        (r.right + r.left) / 2,
-        (r.bottom + r.top) / 2,
-    };
-    ClientToScreen(g_programState.hWnd, &moveHere);
-    SetCursorPos(moveHere.x, moveHere.y);
-}
-
 static void MoveNextGeographically(POINT p)
 {
     if(g_programState.activeSlot < 0) {
@@ -129,8 +114,6 @@ void MoveNext(DWORD direction)
                 g_programState.activeSlot,
                 (void*)g_programState.slots[g_programState.activeSlot].hwnd);
     }
-
-    MoveCursorOverActiveSlot();
 
     RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE);
 }
