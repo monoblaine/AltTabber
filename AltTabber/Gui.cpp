@@ -427,7 +427,8 @@ void OnPaint(HDC hdc)
         Rectangle(hdc, r.left, r.top, r.right, r.bottom);
     }
 
-    SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+    SelectObject(hdc, GetStockObject(DC_BRUSH));
+    SetDCBrushColor(hdc, RGB(0xcc, 0xcc, 0xcc));
     SelectObject(hdc, GetStockObject(BLACK_PEN));
     int prevBkMode = SetBkMode(hdc, TRANSPARENT);
 
@@ -454,7 +455,16 @@ void OnPaint(HDC hdc)
         GetWindowText(hwnd, str, 256);
         std::wstring title(str);
 
-        Rectangle(hdc, r.left, r.top, r.right, r.bottom);
+        if (j == g_programState.activeSlot) {
+            SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+            Rectangle(hdc, r.left, r.top, r.right, r.bottom);
+            SelectObject(hdc, GetStockObject(DC_BRUSH));
+            SetDCBrushColor(hdc, RGB(0xcc, 0xcc, 0xcc));
+        }
+        else {
+            Rectangle(hdc, r.left, r.top, r.right, r.bottom);
+        }
+
         r.left += 10;
         r.right -= 10;
         r.top += 10;
