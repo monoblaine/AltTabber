@@ -535,12 +535,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             ShowContextMenu(p.x, p.y);
         }
         break;
-    case WM_LBUTTONUP:
-        if(!g_programState.showing) break;
-        SelectByMouse((DWORD)lParam);
-        break;
-    case WM_LBUTTONDBLCLK:
-    case WM_RBUTTONDBLCLK:
+    case WM_LBUTTONDOWN:
         if(!g_programState.showing) break;
         SelectByMouse((DWORD)lParam);
         SelectCurrent();
