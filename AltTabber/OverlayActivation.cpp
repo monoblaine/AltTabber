@@ -11,8 +11,7 @@ void ActivateSwitcher()
 {
     log(_T("activating switcher\n"));
     g_programState.prevActiveWindow = GetForegroundWindow();
-    log(_T("previous window is %p\n"),
-            (void*)g_programState.prevActiveWindow);
+    log(_T("previous window is %p\n"), (void*)g_programState.prevActiveWindow);
     g_programState.showing = TRUE;
     auto monitorGeom = GetMonitorGeometry();
     SetForegroundWindow(g_programState.hWnd);
