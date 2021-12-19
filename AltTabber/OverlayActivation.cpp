@@ -9,25 +9,20 @@ extern void SetThumbnails();
 
 void ActivateSwitcher()
 {
-    log(_T("activating switcher\n"));
     g_programState.prevActiveWindow = GetForegroundWindow();
-    log(_T("previous window is %p\n"), (void*)g_programState.prevActiveWindow);
     g_programState.showing = TRUE;
-    auto monitorGeom = GetMonitorGeometry();
+
+    auto windowThreadProcessId = GetWindowThreadProcessId(g_programState.prevActiveWindow, LPDWORD(0));
+    auto currentThreadId = GetCurrentThreadId();
+
+    AttachThreadInput(windowThreadProcessId, currentThreadId, true);
     SetForegroundWindow(g_programState.hWnd);
     SetFocus(g_programState.hWnd);
-    auto hrSWP = SetWindowPos(g_programState.hWnd,
-            NULL,
-            0, 0,
-            0, 0,
-            SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
-    log(_T("SetWindowPos returned %d: errno %d\n"), hrSWP, GetLastError());
-    hrSWP = SetWindowPos(g_programState.hWnd,
-            HWND_TOPMOST,
-            monitorGeom.r.left, monitorGeom.r.top,
-            monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top,
-            SWP_NOSENDCHANGING);
-    log(_T("SetWindowPos returned %d: errno %d\n"), hrSWP, GetLastError());
+    AttachThreadInput(windowThreadProcessId, currentThreadId, false);
+
+    auto monitorGeom = GetMonitorGeometry();
+    auto hrSWP = SetWindowPos(g_programState.hWnd, NULL, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
+         hrSWP = SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
 
     g_programState.filter = _T("");
     CreateThumbnails(g_programState.filter);
