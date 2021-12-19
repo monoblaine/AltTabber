@@ -388,12 +388,15 @@ void CloseCurrent(const HWND& hWnd)
 {
     if (g_programState.activeSlot >= 0) {
         auto& slot = g_programState.slots[g_programState.activeSlot];
-        PostMessage(slot.hwnd, WM_SYSCOMMAND, SC_CLOSE, -1);
+        PostMessage(slot.hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);
         if (g_programState.resetOnClose) {
             // clear the filter because of use case
             if (g_programState.slots.size() <= 2) {
                 g_programState.filter = L"";
             }
+
+            Sleep(50);
+
             // rebuild thumbnails because filter was changed
             // and there are maybe dangling slots
             CreateThumbnails(g_programState.filter);
