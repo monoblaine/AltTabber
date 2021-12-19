@@ -29,6 +29,7 @@ extern MonitorGeom_t GetMonitorGeometry();
 extern void SynchronizeWithRegistry();
 extern void ActivateSwitcher();
 extern void SelectCurrent();
+extern void CloseCurrent(const HWND& hWnd);
 extern void MoveNext(DWORD);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
@@ -383,6 +384,26 @@ void MoveToMonitor(unsigned int monitor)
     }
 }
 
+void CloseCurrent(const HWND& hWnd)
+{
+    if (g_programState.activeSlot >= 0) {
+        auto& slot = g_programState.slots[g_programState.activeSlot];
+        PostMessage(slot.hwnd, WM_SYSCOMMAND, SC_CLOSE, -1);
+        if (g_programState.resetOnClose) {
+            // clear the filter because of use case
+            if (g_programState.slots.size() <= 2) {
+                g_programState.filter = L"";
+            }
+            // rebuild thumbnails because filter was changed
+            // and there are maybe dangling slots
+            CreateThumbnails(g_programState.filter);
+            SetThumbnails();
+            // force redraw window (the labels)
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+        }
+    }
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -453,22 +474,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostMessage(hWnd, WM_CLOSE, 0, 0);
             break;
         case MY_CLOSE_BTN_ID:
-            if(g_programState.activeSlot >= 0) {
-                auto& slot = g_programState.slots[g_programState.activeSlot];
-                PostMessage(slot.hwnd, WM_SYSCOMMAND, SC_CLOSE, -1);
-                if(g_programState.resetOnClose) {
-                    // clear the filter because of use case
-                    if(g_programState.slots.size() <= 2) {
-                        g_programState.filter = L"";
-                    }
-                    // rebuild thumbnails because filter was changed
-                    // and there are maybe dangling slots
-                    CreateThumbnails(g_programState.filter);
-                    SetThumbnails();
-                    // force redraw window (the labels)
-                    RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
-                }
-            }
+            CloseCurrent(hWnd);
             break;
         case MY_MOVE_TO_1_ID:
         case MY_MOVE_TO_2_ID:
@@ -585,6 +591,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case VK_RETURN:
             SelectCurrent();
+            break;
+        case VK_DELETE:
+            CloseCurrent(hWnd);
             break;
         case VK_F1:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
