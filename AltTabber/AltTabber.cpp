@@ -236,6 +236,7 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     RegisterHotKey(hWnd, 2, MOD_WIN, VK_NEXT);
     RegisterHotKey(hWnd, 3, MOD_WIN, VK_PRIOR);
     RegisterHotKey(hWnd, 4, MOD_WIN, VK_HOME);
+    RegisterHotKey(hWnd, 5, MOD_CONTROL | MOD_SHIFT, 0x59); // Y
 
     g_programState.hWnd = hWnd;
 
@@ -541,6 +542,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (g_programState.slots.empty() == FALSE) {
                     g_programState.prevActiveWindow = g_programState.slots[0].hwnd;
+                    QuitOverlay();
+                }
+                return 0;
+
+            case 5:
+                CreateThumbnails(g_programState.filter);
+                SetThumbnails();
+
+                if (g_programState.slots.empty() == FALSE) {
+                    Sleep(50);
+                    g_programState.prevActiveWindow = g_programState.slots[g_programState.activeSlot].hwnd;
                     QuitOverlay();
                 }
                 return 0;
