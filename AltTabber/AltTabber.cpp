@@ -32,8 +32,10 @@ extern void SelectCurrent();
 extern void CloseCurrent(const HWND& hWnd);
 extern void MoveNext(DWORD);
 extern void MoveNextOnTaskbar(DWORD);
+extern void ShowWindow(BOOL);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
+void Quit();
 extern void PurgeThumbnails();
 extern void CreateThumbnails(std::wstring const&);
 extern void SetThumbnails();
@@ -533,28 +535,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case 3:
                 g_programState.prevActiveWindow = NULL;
                 MoveNextOnTaskbar(hotKeyId == 2 ? VK_RIGHT : VK_LEFT);
-                QuitOverlay();
+                Quit();
                 return 0;
 
             case 4:
-                CreateThumbnails(g_programState.filter);
-                SetThumbnails();
-
-                if (g_programState.slots.empty() == FALSE) {
-                    g_programState.prevActiveWindow = g_programState.slots[0].hwnd;
-                    QuitOverlay();
-                }
-                return 0;
-
             case 5:
-                CreateThumbnails(g_programState.filter);
-                SetThumbnails();
-
-                if (g_programState.slots.empty() == FALSE) {
-                    Sleep(50);
-                    g_programState.prevActiveWindow = g_programState.slots[g_programState.activeSlot].hwnd;
-                    QuitOverlay();
-                }
+                ShowWindow(hotKeyId == 4 ? FALSE : TRUE);
+                Quit();
                 return 0;
         }
 

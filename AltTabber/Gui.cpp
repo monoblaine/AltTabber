@@ -170,6 +170,16 @@ static BOOL CALLBACK enumWindows(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
+static BOOL CALLBACK enumWindows2(HWND hwnd, LPARAM lParam)
+{
+    if (hwnd == g_programState.hWnd) return TRUE;
+    if (!IsAltTabWindow(hwnd)) return TRUE;
+
+    g_programState.justWindowHandles.push_back(hwnd);
+
+    return TRUE;
+}
+
 void PurgeThumbnails()
 {
     for(auto i = g_programState.thumbnails.begin(); i != g_programState.thumbnails.end(); ++i) {
@@ -225,6 +235,29 @@ void CreateThumbnails(std::wstring const& filter)
     auto hr = EnumDesktopWindows(hDesktop, enumWindows, (LPARAM)&filter);
     CloseDesktop(hDesktop);
     log(_T("enum desktop windows: %d\n"), hr);
+}
+
+void ShowWindow(BOOL mru)
+{
+    g_programState.justWindowHandles.clear();
+
+    auto hDesktop = OpenInputDesktop(0, FALSE, GENERIC_READ);
+
+    if (!hDesktop) {
+        log(_T("open desktop failed; errno = %d\n"), GetLastError());
+        return;
+    }
+
+    EnumDesktopWindows(hDesktop, enumWindows2, NULL);
+
+    auto size = g_programState.justWindowHandles.size();
+
+    if (size > 0) {
+        auto index = (mru && size > 1) ? 1 : 0;
+        g_programState.prevActiveWindow = g_programState.justWindowHandles[index];
+    }
+
+    CloseDesktop(hDesktop);
 }
 
 template<typename F>
