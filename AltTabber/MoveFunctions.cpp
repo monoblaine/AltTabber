@@ -140,13 +140,6 @@ void MoveNextOnTaskbar(DWORD direction)
     VARIANT propertyValue;
 
     pUIAutomation->ElementFromHandle(hToolbar, &windowElement);
-
-    DestroyWindow(hToolbar);
-    DestroyWindow(hTask);
-    DestroyWindow(hReBar);
-    DestroyWindow(hTray);
-    DestroyWindow(hDesktop);
-
     pUIAutomation->CreateTrueCondition(&condition);
     windowElement->FindAll((TreeScope) (TreeScope_Descendants | TreeScope_Children), condition, &elementArray);
     condition->Release();
