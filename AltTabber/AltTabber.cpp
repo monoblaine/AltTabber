@@ -31,6 +31,7 @@ extern void ActivateSwitcher();
 extern void SelectCurrent();
 extern void CloseCurrent(const HWND& hWnd);
 extern void MoveNext(DWORD);
+extern void MoveNextOnTaskbar(DWORD);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
 extern void PurgeThumbnails();
@@ -232,6 +233,10 @@ BOOL InitInstance(HINSTANCE hInstance, int)
         PostQuitMessage(0);
     }
 
+    RegisterHotKey(hWnd, 2, MOD_WIN, VK_NEXT);
+    RegisterHotKey(hWnd, 3, MOD_WIN, VK_PRIOR);
+    RegisterHotKey(hWnd, 4, MOD_WIN, VK_HOME);
+
     g_programState.hWnd = hWnd;
 
     NOTIFYICONDATA nid = {};
@@ -419,7 +424,7 @@ void CloseCurrent(const HWND& hWnd)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int wmId, wmEvent;
+    int wmId, wmEvent, hotKeyId;
     PAINTSTRUCT ps;
     HDC hdc;
 
@@ -520,6 +525,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_HOTKEY:
+        hotKeyId = (int) wParam;
+
+        switch (hotKeyId) {
+            case 2:
+            case 3:
+                g_programState.prevActiveWindow = NULL;
+                MoveNextOnTaskbar(hotKeyId == 2 ? VK_RIGHT : VK_LEFT);
+                QuitOverlay();
+                return 0;
+
+            case 4:
+                CreateThumbnails(g_programState.filter);
+                SetThumbnails();
+
+                if (g_programState.slots.empty() == FALSE) {
+                    g_programState.prevActiveWindow = g_programState.slots[0].hwnd;
+                    QuitOverlay();
+                }
+                return 0;
+        }
+
         // only waiting for one, so skip over trying to decode it
         // even if multiple keys are registered as hotkeys, they'd
         // all do the same thing anyway

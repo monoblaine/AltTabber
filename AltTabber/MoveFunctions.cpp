@@ -118,6 +118,72 @@ void MoveNext(DWORD direction)
     RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE);
 }
 
+void MoveNextOnTaskbar(DWORD direction)
+{
+    IUIAutomation* pUIAutomation = NULL;
+
+    CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    CoCreateInstance(CLSID_CUIAutomation8, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pUIAutomation));
+
+    auto hDesktop = GetDesktopWindow();
+    auto hTray = FindWindowEx(hDesktop, NULL, _T("Shell_TrayWnd"), NULL);
+    auto hReBar = FindWindowEx(hTray, NULL, _T("ReBarWindow32"), NULL);
+    auto hTask = FindWindowEx(hReBar, NULL, _T("MSTaskSwWClass"), NULL);
+    auto hToolbar = FindWindowEx(hTask, NULL, _T("MSTaskListWClass"), NULL);
+
+    IUIAutomationElement* windowElement = NULL;
+    IUIAutomationCondition* condition = NULL;
+    IUIAutomationElementArray* elementArray = NULL;
+    IUIAutomationElement* taskbarElement = NULL;
+    IUIAutomationInvokePattern* invokePattern = NULL;
+    int buttonCount;
+    VARIANT propertyValue;
+
+    pUIAutomation->ElementFromHandle(hToolbar, &windowElement);
+
+    DestroyWindow(hToolbar);
+    DestroyWindow(hTask);
+    DestroyWindow(hReBar);
+    DestroyWindow(hTray);
+    DestroyWindow(hDesktop);
+
+    pUIAutomation->CreateTrueCondition(&condition);
+    windowElement->FindAll((TreeScope) (TreeScope_Descendants | TreeScope_Children), condition, &elementArray);
+    condition->Release();
+    windowElement->Release();
+    elementArray->get_Length(&buttonCount);
+
+    int activeWndIndex = -1;
+
+    for (int i = 0; i < buttonCount; i++) {
+        elementArray->GetElement(i, &taskbarElement);
+        taskbarElement->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &propertyValue);
+        taskbarElement->Release();
+
+        if (propertyValue.intVal & STATE_SYSTEM_PRESSED) {
+            activeWndIndex = i;
+            break;
+        }
+    }
+
+    if (activeWndIndex != -1) {
+        do {
+            activeWndIndex = ((direction == VK_RIGHT ? ++activeWndIndex : --activeWndIndex) + buttonCount) % buttonCount;
+            elementArray->GetElement(activeWndIndex, &taskbarElement);
+            taskbarElement->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &propertyValue);
+        } while ((propertyValue.intVal & STATE_SYSTEM_HASPOPUP) == 0);
+
+        taskbarElement->GetCurrentPatternAs(UIA_InvokePatternId, __uuidof(IUIAutomationInvokePattern), (void**) &invokePattern);
+        invokePattern->Invoke();
+        invokePattern->Release();
+    }
+
+    taskbarElement->Release();
+    elementArray->Release();
+    pUIAutomation->Release();
+    CoUninitialize();
+}
+
 void SelectByMouse(DWORD lParam)
 {
     int xPos = GET_X_LPARAM(lParam);
