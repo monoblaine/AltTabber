@@ -37,7 +37,7 @@ void QuitOverlay()
     log(_T("escape pressed; reverting\n"));
     g_programState.showing = FALSE;
     auto monitorGeom = GetMonitorGeometry();
-    SetWindowPos(g_programState.hWnd, 0, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOZORDER | SWP_NOSENDCHANGING);
+    SetWindowPos(g_programState.hWnd, NULL, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOZORDER | SWP_NOSENDCHANGING);
     if(g_programState.prevActiveWindow) {
         HWND hwnd = g_programState.prevActiveWindow;
         auto hr = SetForegroundWindow(hwnd);
