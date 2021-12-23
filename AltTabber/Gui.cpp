@@ -237,7 +237,7 @@ void CreateThumbnails(std::wstring const& filter)
     log(_T("enum desktop windows: %d\n"), hr);
 }
 
-void ShowWindow(BOOL mru)
+void SwitchToWindow(BOOL mru)
 {
     g_programState.justWindowHandles.clear();
 
