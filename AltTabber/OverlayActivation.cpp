@@ -23,8 +23,9 @@ void ActivateSwitcher()
     AttachThreadInput(windowThreadProcessId, currentThreadId, false);
 
     auto monitorGeom = GetMonitorGeometry();
-    auto hrSWP = SetWindowPos(g_programState.hWnd, NULL, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
-         hrSWP = SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
+
+    SetWindowPos(g_programState.hWnd, NULL, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
+    SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
 
     g_programState.filter = _T("");
     CreateThumbnails(g_programState.filter);
