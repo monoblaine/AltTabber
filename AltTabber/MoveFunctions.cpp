@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "AltTabber.h"
+#include <UIAutomation.h>
+#include <ShObjIdl.h>
 
 extern ProgramState_t g_programState;
 extern void log(LPTSTR fmt, ...);

@@ -18,8 +18,7 @@
 
 
 // TODO: reference additional headers your program requires here
-#include <UIAutomation.h>
-#include <ShObjIdl.h>
+
 
 #include <cstdio>
 
