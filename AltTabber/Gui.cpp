@@ -25,35 +25,41 @@ static inline BOOL IsWindowReallyVisible(HWND hWnd)
     return CloakedVal ? FALSE : TRUE;
 }
 
-static inline BOOL IsAltTabWindow(HWND hwnd)
-{
+static inline BOOL IsAltTabWindow (HWND hwnd) {
     TITLEBARINFO ti;
     HWND hwndTry, hwndWalk = NULL;
 
-    if(!IsWindowReallyVisible(hwnd))
+    if (!IsWindowReallyVisible(hwnd)) {
         return FALSE;
+    }
 
     hwndTry = GetAncestor(hwnd, GA_ROOTOWNER);
-    while(hwndTry != hwndWalk)
-    {
+
+    while (hwndTry != hwndWalk) {
         hwndWalk = hwndTry;
         hwndTry = GetLastActivePopup(hwndWalk);
-        if(IsWindowReallyVisible(hwndTry))
+
+        if (IsWindowReallyVisible(hwndTry)) {
             break;
+        }
     }
-    if(hwndWalk != hwnd)
+
+    if (hwndWalk != hwnd) {
         return FALSE;
+    }
 
     // the following removes some task tray programs and "Program Manager"
     ti.cbSize = sizeof(ti);
     GetTitleBarInfo(hwnd, &ti);
-    if(ti.rgstate[0] & STATE_SYSTEM_INVISIBLE)
-        return FALSE;
 
-    // Tool windows should not be displayed either, these do not appear in the
-    // task bar.
-    if(GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
+    if (ti.rgstate[0] & STATE_SYSTEM_INVISIBLE) {
         return FALSE;
+    }
+
+    // Tool windows should not be displayed either, these do not appear in the taskbar.
+    if (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) {
+        return FALSE;
+    }
 
     return TRUE;
 }
