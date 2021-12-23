@@ -32,7 +32,7 @@ extern void SelectCurrent();
 extern void CloseCurrent(const HWND& hWnd);
 extern void MoveNext(DWORD);
 extern void MoveNextOnTaskbar(DWORD);
-extern void SwitchToWindow(BOOL);
+extern void ChangeActiveWindow(BOOL);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
 void Quit();
@@ -540,7 +540,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case 4:
             case 5:
-                SwitchToWindow(hotKeyId == 4 ? FALSE : TRUE);
+                ChangeActiveWindow(hotKeyId == 4 ? FALSE : TRUE);
                 Quit();
                 return 0;
         }
