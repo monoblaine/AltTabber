@@ -30,22 +30,6 @@ static inline BOOL IsAltTabWindow (HWND hwnd) {
         return FALSE;
     }
 
-    auto hwndTmp = GetAncestor(hwnd, GA_ROOTOWNER);
-    HWND hwndWalk = NULL;
-
-    while (hwndTmp != hwndWalk) {
-        hwndWalk = hwndTmp;
-        hwndTmp = GetLastActivePopup(hwndWalk);
-
-        if (IsWindowReallyVisible(hwndTmp)) {
-            break;
-        }
-    }
-
-    if (hwndWalk != hwnd) {
-        return FALSE;
-    }
-
     // the following removes some task tray programs and "Program Manager"
     TITLEBARINFO ti;
     ti.cbSize = sizeof(ti);
