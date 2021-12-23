@@ -26,20 +26,18 @@ static inline BOOL IsWindowReallyVisible(HWND hWnd)
 }
 
 static inline BOOL IsAltTabWindow (HWND hwnd) {
-    TITLEBARINFO ti;
-    HWND hwndTry, hwndWalk = NULL;
-
     if (!IsWindowReallyVisible(hwnd)) {
         return FALSE;
     }
 
-    hwndTry = GetAncestor(hwnd, GA_ROOTOWNER);
+    auto hwndTmp = GetAncestor(hwnd, GA_ROOTOWNER);
+    HWND hwndWalk = NULL;
 
-    while (hwndTry != hwndWalk) {
-        hwndWalk = hwndTry;
-        hwndTry = GetLastActivePopup(hwndWalk);
+    while (hwndTmp != hwndWalk) {
+        hwndWalk = hwndTmp;
+        hwndTmp = GetLastActivePopup(hwndWalk);
 
-        if (IsWindowReallyVisible(hwndTry)) {
+        if (IsWindowReallyVisible(hwndTmp)) {
             break;
         }
     }
@@ -49,6 +47,7 @@ static inline BOOL IsAltTabWindow (HWND hwnd) {
     }
 
     // the following removes some task tray programs and "Program Manager"
+    TITLEBARINFO ti;
     ti.cbSize = sizeof(ti);
     GetTitleBarInfo(hwnd, &ti);
 
