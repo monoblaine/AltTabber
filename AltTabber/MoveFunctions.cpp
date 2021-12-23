@@ -235,9 +235,16 @@ void MoveNextOnTaskbar(DWORD direction)
             targetTaskbarButton = firstVisitedTaskbarButton;
         }
 
-        targetTaskbarButton->GetCurrentPatternAs(UIA_InvokePatternId, __uuidof(IUIAutomationInvokePattern), (void**)&invokePattern);
-        invokePattern->Invoke();
-        invokePattern->Release();
+        auto res = targetTaskbarButton->GetCurrentPatternAs(UIA_InvokePatternId, __uuidof(IUIAutomationInvokePattern), (void**) &invokePattern);
+
+        if (SUCCEEDED(res)) {
+            invokePattern->Invoke();
+        }
+
+        if (invokePattern) {
+            invokePattern->Release();
+        }
+
         targetTaskbarButton->Release();
 
         if (activeTaskbarButton != targetTaskbarButton) {
