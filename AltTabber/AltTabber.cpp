@@ -533,15 +533,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch (hotKeyId) {
             case 2:
             case 3:
-                g_programState.prevActiveWindow = NULL;
+                if (g_programState.showing) {
+                    return 0;
+                }
+
+                g_programState.showing = true;
                 MoveNextOnTaskbar(hotKeyId == 2 ? VK_RIGHT : VK_LEFT);
-                Quit();
+                g_programState.showing = false;
                 return 0;
 
             case 4:
             case 5:
+                if (g_programState.showing) {
+                    return 0;
+                }
+                g_programState.showing = true;
                 ChangeActiveWindow(hotKeyId == 4 ? FALSE : TRUE);
                 Quit();
+                g_programState.showing = false;
                 return 0;
         }
 

@@ -238,15 +238,23 @@ void ChangeActiveWindow(BOOL mru)
     }
 
     EnumDesktopWindows(hDesktop, enumWindows2, NULL);
+    CloseDesktop(hDesktop);
 
     auto size = g_programState.justWindowHandles.size();
 
-    if (size > 0) {
-        auto index = (mru && size > 1) ? 1 : 0;
-        g_programState.prevActiveWindow = g_programState.justWindowHandles[index];
+    if (size == 0) {
+        return;
     }
 
-    CloseDesktop(hDesktop);
+    auto windowThreadProcessId = GetWindowThreadProcessId(GetForegroundWindow(), LPDWORD(0));
+    auto currentThreadId = GetCurrentThreadId();
+
+    AttachThreadInput(windowThreadProcessId, currentThreadId, true);
+    SetForegroundWindow(g_programState.hWnd);
+    SetFocus(g_programState.hWnd);
+    AttachThreadInput(windowThreadProcessId, currentThreadId, false);
+
+    g_programState.prevActiveWindow = g_programState.justWindowHandles[(mru && size > 1) ? 1 : 0];
 }
 
 template<typename F>
