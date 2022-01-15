@@ -239,6 +239,7 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     RegisterHotKey(hWnd, 3, MOD_WIN, VK_PRIOR);
     RegisterHotKey(hWnd, 4, MOD_WIN, VK_HOME);
     RegisterHotKey(hWnd, 5, MOD_CONTROL | MOD_SHIFT, 0x59); // Y
+    RegisterHotKey(hWnd, 6, MOD_ALT, VK_HOME);
 
     g_programState.hWnd = hWnd;
 
@@ -544,11 +545,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case 4:
             case 5:
+            case 6:
                 if (g_programState.showing) {
                     return 0;
                 }
                 g_programState.showing = true;
-                ChangeActiveWindow(hotKeyId == 4 ? FALSE : TRUE);
+                ChangeActiveWindow(hotKeyId == 5 ? TRUE : FALSE);
                 Quit();
                 g_programState.showing = false;
                 return 0;
