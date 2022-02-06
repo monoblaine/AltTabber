@@ -30,15 +30,6 @@ static inline BOOL IsAltTabWindow (HWND hwnd) {
         return FALSE;
     }
 
-    // the following removes some task tray programs and "Program Manager"
-    TITLEBARINFO ti;
-    ti.cbSize = sizeof(ti);
-    GetTitleBarInfo(hwnd, &ti);
-
-    if (ti.rgstate[0] & STATE_SYSTEM_INVISIBLE) {
-        return FALSE;
-    }
-
     // Tool windows should not be displayed either, these do not appear in the taskbar.
     if (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) {
         return FALSE;
