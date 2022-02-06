@@ -14,13 +14,13 @@ void ActivateSwitcher()
     g_programState.prevActiveWindow = GetForegroundWindow();
     g_programState.showing = TRUE;
 
-    auto windowThreadProcessId = GetWindowThreadProcessId(g_programState.prevActiveWindow, LPDWORD(0));
+    auto windowThreadProcessId = GetWindowThreadProcessId(g_programState.prevActiveWindow, NULL);
     auto currentThreadId = GetCurrentThreadId();
 
-    AttachThreadInput(windowThreadProcessId, currentThreadId, true);
+    AttachThreadInput(windowThreadProcessId, currentThreadId, TRUE);
     SetForegroundWindow(g_programState.hWnd);
     SetFocus(g_programState.hWnd);
-    AttachThreadInput(windowThreadProcessId, currentThreadId, false);
+    AttachThreadInput(windowThreadProcessId, currentThreadId, FALSE);
 
     auto monitorGeom = GetMonitorGeometry();
 
