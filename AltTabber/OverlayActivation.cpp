@@ -6,12 +6,14 @@ extern void log(LPTSTR fmt, ...);
 extern MonitorGeom_t GetMonitorGeometry();
 extern void CreateThumbnails(std::wstring const& filter);
 extern void SetThumbnails();
+extern void PurgeThumbnails();
 
-void Quit();
-
-void ActivateSwitcher()
+void ActivateSwitcher(BOOL showThumbs)
 {
-    g_programState.prevActiveWindow = GetForegroundWindow();
+    if (showThumbs) {
+        g_programState.prevActiveWindow = GetForegroundWindow();
+    }
+
     g_programState.showing = TRUE;
 
     auto windowThreadProcessId = GetWindowThreadProcessId(g_programState.prevActiveWindow, NULL);
@@ -28,8 +30,19 @@ void ActivateSwitcher()
     SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
 
     g_programState.filter = _T("");
-    CreateThumbnails(g_programState.filter);
+
+    if (showThumbs) {
+        CreateThumbnails(g_programState.filter);
+    }
+    else {
+        PurgeThumbnails();
+    }
+
     SetThumbnails();
+}
+
+void ActivateSwitcher() {
+    ActivateSwitcher(TRUE);
 }
 
 void QuitOverlay()
@@ -54,21 +67,5 @@ void QuitOverlay()
             //auto hr = OpenIcon(hwnd);
             log(_T("restoring %p hr = %ld\n"), (void*)hwnd, hr);
         }
-    }
-}
-
-void forceForegroundWindow(HWND hwnd) {
-    DWORD windowThreadProcessId = GetWindowThreadProcessId(GetForegroundWindow(),LPDWORD(0));
-    DWORD currentThreadId = GetCurrentThreadId();
-    AttachThreadInput(windowThreadProcessId, currentThreadId, TRUE);
-    BringWindowToTop(hwnd);
-    ShowWindow(hwnd, SW_SHOW);
-    AttachThreadInput(windowThreadProcessId,currentThreadId, FALSE);
-}
-
-void Quit()
-{
-    if (g_programState.prevActiveWindow) {
-        forceForegroundWindow(g_programState.prevActiveWindow);
     }
 }

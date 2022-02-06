@@ -5,6 +5,7 @@
 extern ProgramState_t g_programState;
 extern void log(LPTSTR fmt, ...);
 extern MonitorGeom_t GetMonitorGeometry();
+extern void ActivateSwitcher(BOOL showThumbs);
 
 /// <summary>
 /// Reference: https://stackoverflow.com/a/33577647/1396155
@@ -237,15 +238,9 @@ void ChangeActiveWindow(BOOL mru)
         return;
     }
 
-    auto windowThreadProcessId = GetWindowThreadProcessId(GetForegroundWindow(), LPDWORD(0));
-    auto currentThreadId = GetCurrentThreadId();
-
-    AttachThreadInput(windowThreadProcessId, currentThreadId, true);
-    SetForegroundWindow(g_programState.hWnd);
-    SetFocus(g_programState.hWnd);
-    AttachThreadInput(windowThreadProcessId, currentThreadId, false);
-
     g_programState.prevActiveWindow = g_programState.justWindowHandles[(mru && size > 1) ? 1 : 0];
+
+    ActivateSwitcher(FALSE);
 }
 
 template<typename F>

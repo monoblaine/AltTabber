@@ -35,7 +35,6 @@ extern void MoveNextOnTaskbar(DWORD);
 extern void ChangeActiveWindow(BOOL);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
-void Quit();
 extern void PurgeThumbnails();
 extern void CreateThumbnails(std::wstring const&);
 extern void SetThumbnails();
@@ -549,10 +548,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (g_programState.showing) {
                     return 0;
                 }
-                g_programState.showing = true;
                 ChangeActiveWindow(hotKeyId == 5 ? TRUE : FALSE);
-                Quit();
-                g_programState.showing = false;
+                Sleep(20);
+                QuitOverlay();
                 return 0;
         }
 
