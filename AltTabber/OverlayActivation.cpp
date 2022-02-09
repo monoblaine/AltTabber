@@ -8,12 +8,9 @@ extern void CreateThumbnails(std::wstring const& filter);
 extern void SetThumbnails();
 extern void PurgeThumbnails();
 
-void ActivateSwitcher(BOOL showThumbs)
+void ActivateSwitcher()
 {
-    if (showThumbs) {
-        g_programState.prevActiveWindow = GetForegroundWindow();
-    }
-
+    g_programState.prevActiveWindow = GetForegroundWindow();
     g_programState.showing = TRUE;
 
     auto windowThreadProcessId = GetWindowThreadProcessId(g_programState.prevActiveWindow, NULL);
@@ -30,19 +27,8 @@ void ActivateSwitcher(BOOL showThumbs)
     SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
 
     g_programState.filter = _T("");
-
-    if (showThumbs) {
-        CreateThumbnails(g_programState.filter);
-    }
-    else {
-        PurgeThumbnails();
-    }
-
+    CreateThumbnails(g_programState.filter);
     SetThumbnails();
-}
-
-void ActivateSwitcher() {
-    ActivateSwitcher(TRUE);
 }
 
 void QuitOverlay()

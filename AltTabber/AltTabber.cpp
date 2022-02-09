@@ -32,7 +32,6 @@ extern void SelectCurrent();
 extern void CloseCurrent(const HWND& hWnd);
 extern void MoveNext(DWORD);
 extern void MoveNextOnTaskbar(DWORD);
-extern void ChangeActiveWindow(BOOL);
 extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
 extern void PurgeThumbnails();
@@ -236,9 +235,6 @@ BOOL InitInstance(HINSTANCE hInstance, int)
 
     RegisterHotKey(hWnd, 2, MOD_WIN, VK_NEXT);
     RegisterHotKey(hWnd, 3, MOD_WIN, VK_PRIOR);
-    RegisterHotKey(hWnd, 4, MOD_WIN, VK_HOME);
-    RegisterHotKey(hWnd, 5, MOD_CONTROL | MOD_SHIFT, 0x59); // Y
-    RegisterHotKey(hWnd, 6, MOD_ALT, VK_HOME);
 
     g_programState.hWnd = hWnd;
 
@@ -540,17 +536,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 g_programState.showing = true;
                 MoveNextOnTaskbar(hotKeyId == 2 ? VK_RIGHT : VK_LEFT);
                 g_programState.showing = false;
-                return 0;
-
-            case 4:
-            case 5:
-            case 6:
-                if (g_programState.showing) {
-                    return 0;
-                }
-                ChangeActiveWindow(hotKeyId == 5 ? TRUE : FALSE);
-                Sleep(20);
-                QuitOverlay();
                 return 0;
         }
 
