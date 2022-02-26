@@ -195,7 +195,7 @@ void MoveNextOnTaskbar(DWORD direction)
     IUIAutomationElement* activeTaskbarButton = NULL;
     IUIAutomationInvokePattern* invokePattern = NULL;
     int buttonState;
-    int isPressed;
+    int isPressed = 0;
 
     InitializeUIAutomation(&pUIAutomation);
     pUIAutomation->get_ControlViewWalker(&treeWalker);
