@@ -128,7 +128,7 @@ BOOL InitializeUIAutomation(IUIAutomation** automation)
     return (SUCCEEDED(hr));
 }
 
-inline BOOL IsButton(IUIAutomationElement* control, int* state) {
+BOOL IsButton(IUIAutomationElement* control, int* state) {
     CONTROLTYPEID controlTypeId;
 
     control->get_CurrentControlType(&controlTypeId);
