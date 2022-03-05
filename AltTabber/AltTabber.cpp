@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "AltTabber.h"
+#include <UIAutomation.h>
 
 #define MAX_LOADSTRING 100
 
@@ -59,6 +60,9 @@ ProgramState_t g_programState = {
 HINSTANCE hInst;                                // current instance
 TCHAR szTitle[MAX_LOADSTRING];                    // The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+IUIAutomation* uiAutomation = nullptr;
+IUIAutomationTreeWalker* treeWalker = nullptr;
+IUIAutomationElement* toolbar = nullptr;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -66,6 +70,33 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+static bool initUIAutomation() {
+    auto hr = CoInitialize(NULL);
+
+    if (SUCCEEDED(hr)) {
+        hr = CoCreateInstance(
+            __uuidof(CUIAutomation),
+            NULL,
+            CLSCTX_INPROC_SERVER,
+            __uuidof(IUIAutomation),
+            (void**) &uiAutomation
+        );
+
+        if (SUCCEEDED(hr)) {
+            uiAutomation->get_ContentViewWalker(&treeWalker);
+
+            auto hDesktop = GetDesktopWindow();
+            auto hTray = FindWindowEx(hDesktop, NULL, _T("Shell_TrayWnd"), NULL);
+            auto hReBar = FindWindowEx(hTray, NULL, _T("ReBarWindow32"), NULL);
+            auto hTask = FindWindowEx(hReBar, NULL, _T("MSTaskSwWClass"), NULL);
+            auto hToolbar = FindWindowEx(hTask, NULL, _T("MSTaskListWClass"), NULL);
+
+            uiAutomation->ElementFromHandle(hToolbar, &toolbar);
+        }
+    }
+
+    return (SUCCEEDED(hr));
+}
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -96,6 +127,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     }
 
     hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ALTTABBER));
+    initUIAutomation();
 
     // Main message loop:
     while (GetMessage(&msg, NULL, 0, 0))
@@ -122,6 +154,20 @@ static inline void Cleanup()
     nid.hWnd = g_programState.hWnd;
     nid.uFlags = 0;
     Shell_NotifyIcon(NIM_DELETE, &nid);
+
+    if (uiAutomation) {
+        if (treeWalker) {
+            treeWalker->Release();
+
+            if (toolbar) {
+                toolbar->Release();
+            }
+        }
+
+        uiAutomation->Release();
+    }
+
+    CoUninitialize();
 }
 
 //

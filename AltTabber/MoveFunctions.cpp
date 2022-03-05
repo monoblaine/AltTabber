@@ -4,6 +4,9 @@
 #include <ShObjIdl.h>
 
 extern ProgramState_t g_programState;
+extern IUIAutomation* uiAutomation;
+extern IUIAutomationTreeWalker* treeWalker;
+extern IUIAutomationElement* toolbar;
 extern void log(LPTSTR fmt, ...);
 extern void QuitOverlay();
 
@@ -120,154 +123,114 @@ void MoveNext(DWORD direction)
     RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE);
 }
 
-BOOL InitializeUIAutomation(IUIAutomation** automation)
-{
-    CoInitialize(NULL);
-    HRESULT hr = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**) automation);
+static inline void updateEl(HRESULT hr, IUIAutomationElement** el, IUIAutomationElement** tmp, bool releaseOriginalEl) {
+    if (SUCCEEDED(hr)) {
+        if (releaseOriginalEl) {
+            (*el)->Release();
+        }
 
-    return (SUCCEEDED(hr));
+        *el = *tmp;
+    }
+    else {
+        *el = nullptr;
+    }
 }
 
-BOOL IsButton(IUIAutomationElement* control, int* state) {
-    CONTROLTYPEID controlTypeId;
+static void getNextSiblingElement(IUIAutomationElement** el, bool releaseOriginalEl = true) {
+    IUIAutomationElement* tmp;
+    auto hr = treeWalker->GetNextSiblingElement(*el, &tmp);
+    updateEl(hr, el, &tmp, releaseOriginalEl);
+}
 
-    control->get_CurrentControlType(&controlTypeId);
+static void getPrevSiblingElement(IUIAutomationElement** el, bool releaseOriginalEl = true) {
+    IUIAutomationElement* tmp;
+    auto hr = treeWalker->GetPreviousSiblingElement(*el, &tmp);
+    updateEl(hr, el, &tmp, releaseOriginalEl);
+}
 
-    if (controlTypeId != UIA_ButtonControlTypeId) {
-        return FALSE;
+static void getFirstChildElement(IUIAutomationElement** el, bool releaseOriginalEl = true) {
+    IUIAutomationElement* tmp;
+    auto hr = treeWalker->GetFirstChildElement(*el, &tmp);
+    updateEl(hr, el, &tmp, releaseOriginalEl);
+}
+
+static void getLastChildElement(IUIAutomationElement** el, bool releaseOriginalEl = true) {
+    IUIAutomationElement* tmp;
+    auto hr = treeWalker->GetLastChildElement(*el, &tmp);
+    updateEl(hr, el, &tmp, releaseOriginalEl);
+}
+
+static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
+    CONTROLTYPEID typeId;
+    el->get_CurrentControlType(&typeId);
+
+    if (typeId != UIA_ButtonControlTypeId) {
+        return false;
     }
 
-    VARIANT var_propertyValue;
-    control->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &var_propertyValue);
-    auto hasPopup = ((*state = var_propertyValue.intVal) & STATE_SYSTEM_HASPOPUP) != 0;
-    VariantClear(&var_propertyValue);
+    VARIANT variant;
+    el->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &variant);
+    auto hasPopup = ((*buttonState = variant.intVal) & STATE_SYSTEM_HASPOPUP) != 0;
+    VariantClear(&variant);
 
     return hasPopup;
-}
-
-IUIAutomationElement* GetSiblingButton(IUIAutomationTreeWalker* treeWalker, BOOL isLtr, IUIAutomationElement* el, int* buttonState) {
-    IUIAutomationElement* sibling = NULL;
-
-    if (isLtr) {
-        treeWalker->GetNextSiblingElement(el, &sibling);
-    }
-    else {
-        treeWalker->GetPreviousSiblingElement(el, &sibling);
-    }
-
-    while (sibling != NULL && !IsButton(sibling, buttonState)) {
-        auto tmp = GetSiblingButton(treeWalker, isLtr, sibling, buttonState);
-        sibling->Release();
-        sibling = tmp;
-    }
-
-    return sibling;
-}
-
-IUIAutomationElement* GetChildButton(IUIAutomationTreeWalker* treeWalker, BOOL isLtr, IUIAutomationElement* parentEl, int* buttonState) {
-    IUIAutomationElement* child = NULL;
-
-    if (isLtr) {
-        treeWalker->GetFirstChildElement(parentEl, &child);
-    }
-    else {
-        treeWalker->GetLastChildElement(parentEl, &child);
-    }
-
-    if (child == NULL || IsButton(child, buttonState)) {
-        return child;
-    }
-
-    auto tmp = GetSiblingButton(treeWalker, isLtr, child, buttonState);
-    child->Release();
-    child = tmp;
-
-    return child;
 }
 
 void MoveNextOnTaskbar(DWORD direction)
 {
     auto isLtr = direction == VK_RIGHT;
-    IUIAutomation* pUIAutomation = NULL;
-    IUIAutomationTreeWalker* treeWalker = NULL;
-    IUIAutomationElement* windowElement = NULL;
-    IUIAutomationElement* firstVisitedTaskbarButton = NULL;
-    IUIAutomationElement* activeTaskbarButton = NULL;
-    IUIAutomationInvokePattern* invokePattern = NULL;
+    IUIAutomationElement* button = nullptr;
     int buttonState;
-    int isPressed = 0;
 
-    InitializeUIAutomation(&pUIAutomation);
-    pUIAutomation->get_ControlViewWalker(&treeWalker);
+    treeWalker->GetFirstChildElement(toolbar, &button);
 
-    auto hDesktop = GetDesktopWindow();
-    auto hTray = FindWindowEx(hDesktop, NULL, _T("Shell_TrayWnd"), NULL);
-    auto hReBar = FindWindowEx(hTray, NULL, _T("ReBarWindow32"), NULL);
-    auto hTask = FindWindowEx(hReBar, NULL, _T("MSTaskSwWClass"), NULL);
-    auto hToolbar = FindWindowEx(hTask, NULL, _T("MSTaskListWClass"), NULL);
+    while (button) {
+        if (isButtonWithPopup(button, &buttonState) && (buttonState & STATE_SYSTEM_PRESSED) != 0) {
+            break;
+        }
 
-    pUIAutomation->ElementFromHandle(hToolbar, &windowElement);
-    firstVisitedTaskbarButton = activeTaskbarButton = GetChildButton(treeWalker, isLtr, windowElement, &buttonState);
-    windowElement->Release();
-
-    if (activeTaskbarButton) {
-        isPressed = buttonState & STATE_SYSTEM_PRESSED;
+        getNextSiblingElement(&button);
     }
 
-    while (activeTaskbarButton && !isPressed) {
-        auto tmpEl = GetSiblingButton(treeWalker, isLtr, activeTaskbarButton, &buttonState);
+    if (button) {
+        void (*getSiblingElement)(IUIAutomationElement**, bool) = nullptr;
+        void (*getElementFromEdge)(IUIAutomationElement**, bool) = nullptr;
 
-        if (activeTaskbarButton != firstVisitedTaskbarButton) {
-            activeTaskbarButton->Release();
+        if (isLtr) {
+            getSiblingElement = &getNextSiblingElement;
+            getElementFromEdge = &getFirstChildElement;
+        }
+        else {
+            getSiblingElement = &getPrevSiblingElement;
+            getElementFromEdge = &getLastChildElement;
         }
 
-        activeTaskbarButton = tmpEl;
+        do {
+            getSiblingElement(&button, true);
 
-        if (activeTaskbarButton != NULL) {
-            isPressed = buttonState & STATE_SYSTEM_PRESSED;
+            if (!button) {
+                button = toolbar;
+                getElementFromEdge(&button, false);
+            }
+
+            if (button && isButtonWithPopup(button, &buttonState)) {
+                break;
+            }
         }
-    }
+        while (button);
 
-    if (isPressed) {
-        auto targetTaskbarButton = GetSiblingButton(treeWalker, isLtr, activeTaskbarButton, &buttonState);
-
-        if (targetTaskbarButton == NULL) {
-            targetTaskbarButton = firstVisitedTaskbarButton;
-        }
-
-        auto res = targetTaskbarButton->GetCurrentPatternAs(UIA_InvokePatternId, __uuidof(IUIAutomationInvokePattern), (void**) &invokePattern);
-
-        if (SUCCEEDED(res)) {
+        if (button) {
+            IUIAutomationInvokePattern* invokePattern = nullptr;
+            button->GetCurrentPatternAs(
+                UIA_InvokePatternId,
+                __uuidof(IUIAutomationInvokePattern),
+                (void**) &invokePattern
+            );
             invokePattern->Invoke();
-        }
-
-        if (invokePattern) {
             invokePattern->Release();
-        }
-
-        targetTaskbarButton->Release();
-
-        if (activeTaskbarButton != targetTaskbarButton) {
-            activeTaskbarButton->Release();
-        }
-
-        if (firstVisitedTaskbarButton != activeTaskbarButton) {
-            firstVisitedTaskbarButton->Release();
+            button->Release();
         }
     }
-    else {
-        if (activeTaskbarButton != NULL) {
-            activeTaskbarButton->Release();
-        }
-
-        if (firstVisitedTaskbarButton != NULL && firstVisitedTaskbarButton != activeTaskbarButton) {
-            firstVisitedTaskbarButton->Release();
-        }
-    }
-
-    treeWalker->Release();
-    pUIAutomation->Release();
-    CoUninitialize();
 }
 
 void SelectByMouse(DWORD lParam)
