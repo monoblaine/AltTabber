@@ -179,20 +179,20 @@ static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
 void MoveNextOnTaskbar(DWORD direction)
 {
     auto isLtr = direction == VK_RIGHT;
-    IUIAutomationElement* button = nullptr;
+    IUIAutomationElement* el = toolbar;
     int buttonState;
 
-    treeWalker->GetFirstChildElement(toolbar, &button);
+    getFirstChildElement(&el, false);
 
-    while (button) {
-        if (isButtonWithPopup(button, &buttonState) && (buttonState & STATE_SYSTEM_PRESSED) != 0) {
+    while (el) {
+        if (isButtonWithPopup(el, &buttonState) && (buttonState & STATE_SYSTEM_PRESSED) != 0) {
             break;
         }
 
-        getNextSiblingElement(&button);
+        getNextSiblingElement(&el);
     }
 
-    if (button) {
+    if (el) {
         void (*getSiblingElement)(IUIAutomationElement**, bool) = nullptr;
         void (*getElementFromEdge)(IUIAutomationElement**, bool) = nullptr;
 
@@ -206,29 +206,29 @@ void MoveNextOnTaskbar(DWORD direction)
         }
 
         do {
-            getSiblingElement(&button, true);
+            getSiblingElement(&el, true);
 
-            if (!button) {
-                button = toolbar;
-                getElementFromEdge(&button, false);
+            if (!el) {
+                el = toolbar;
+                getElementFromEdge(&el, false);
             }
 
-            if (button && isButtonWithPopup(button, &buttonState)) {
+            if (el && isButtonWithPopup(el, &buttonState)) {
                 break;
             }
         }
-        while (button);
+        while (el);
 
-        if (button) {
+        if (el) {
             IUIAutomationInvokePattern* invokePattern = nullptr;
-            button->GetCurrentPatternAs(
+            el->GetCurrentPatternAs(
                 UIA_InvokePatternId,
                 __uuidof(IUIAutomationInvokePattern),
                 (void**) &invokePattern
             );
             invokePattern->Invoke();
             invokePattern->Release();
-            button->Release();
+            el->Release();
         }
     }
 }
