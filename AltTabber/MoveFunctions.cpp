@@ -176,6 +176,37 @@ static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
     return hasPopup;
 }
 
+static void sendLeftClick(int x, int y) {
+    const double XSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CXSCREEN) - 1);
+    const double YSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CYSCREEN) - 1);
+
+    POINT cursorPos;
+    GetCursorPos(&cursorPos);
+
+    double cx = cursorPos.x * XSCALEFACTOR;
+    double cy = cursorPos.y * YSCALEFACTOR;
+
+    double nx = x * XSCALEFACTOR;
+    double ny = y * YSCALEFACTOR;
+
+    INPUT input = { 0 };
+    input.type = INPUT_MOUSE;
+
+    input.mi.dx = (LONG) nx;
+    input.mi.dy = (LONG) ny;
+
+    input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP;
+
+    SendInput(1, &input, sizeof(INPUT));
+
+    input.mi.dx = (LONG) cx;
+    input.mi.dy = (LONG) cy;
+
+    input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+
+    SendInput(1, &input, sizeof(INPUT));
+}
+
 void MoveNextOnTaskbar(DWORD direction)
 {
     auto isLtr = direction == VK_RIGHT;
@@ -220,15 +251,23 @@ void MoveNextOnTaskbar(DWORD direction)
         while (el);
 
         if (el) {
-            IUIAutomationInvokePattern* invokePattern = nullptr;
-            el->GetCurrentPatternAs(
-                UIA_InvokePatternId,
-                __uuidof(IUIAutomationInvokePattern),
-                (void**) &invokePattern
-            );
-            invokePattern->Invoke();
-            invokePattern->Release();
+            VARIANT variant;
+
+            el->GetCurrentPropertyValue(UIA_BoundingRectanglePropertyId, &variant);
             el->Release();
+            double* rectData = nullptr;
+            SafeArrayAccessData(variant.parray, (void**) &rectData);
+            auto left = (int) rectData[0];
+            auto top = (int) rectData[1];
+            auto right = left + (int) rectData[2];
+            auto bottom = top + (int) rectData[3];
+            SafeArrayUnaccessData(variant.parray);
+            VariantClear(&variant);
+
+            auto pointX = left + (int) ((right - left) / 2);
+            auto pointY = top + (int) ((bottom - top) / 2);
+
+            sendLeftClick(pointX, pointY);
         }
     }
 }
