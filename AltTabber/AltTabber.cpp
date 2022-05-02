@@ -148,13 +148,6 @@ static inline void Cleanup()
 
     if(g_programState.freopened != NULL) fclose(g_programState.freopened);
 
-    NOTIFYICONDATA nid;
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.uID = MY_NOTIFICATION_ICON;
-    nid.hWnd = g_programState.hWnd;
-    nid.uFlags = 0;
-    Shell_NotifyIcon(NIM_DELETE, &nid);
-
     if (uiAutomation) {
         if (treeWalker) {
             treeWalker->Release();
@@ -283,29 +276,6 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     RegisterHotKey(hWnd, 3, MOD_WIN, VK_PRIOR);
 
     g_programState.hWnd = hWnd;
-
-    NOTIFYICONDATA nid = {};
-    ZeroMemory(&nid,sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.uID = MY_NOTIFICATION_ICON;
-    nid.uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE ;
-    nid.hWnd = hWnd;
-    nid.uVersion = NOTIFYICON_VERSION_4;
-    nid.uCallbackMessage = MY_NOTIFY_ICON_MESSAGE_ID;
-
-    TCHAR tip[64];
-    // TODO inform about current hotkey better
-    wsprintf(tip, _T("AltTabber - hotkey in hexadecimal codes is %04X %04X"),
-        g_programState.hotkey.modifiers,
-        g_programState.hotkey.key);
-    _tcsncpy_s(nid.szTip, tip, _tcslen(tip));
-
-    nid.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-    HRESULT sniHr = Shell_NotifyIcon(NIM_ADD, &nid);
-    log(_T("Shell_NotifyIcon result: %ld errno %ld\n"), sniHr, GetLastError());
-    nid.uFlags = 0;
-    sniHr = Shell_NotifyIcon(NIM_SETVERSION, &nid);
-    log(_T("Shell_NotifyIcon result: %ld errno %ld\n"), sniHr, GetLastError());
 
     auto hrFW = FindWindow(_T("ThunderRT6Main"), _T("Dexpot"));
     if(hrFW) {
