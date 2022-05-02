@@ -26,9 +26,13 @@ void ActivateSwitcher()
     SetWindowPos(g_programState.hWnd, NULL, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
     SetWindowPos(g_programState.hWnd, HWND_TOPMOST, monitorGeom.r.left, monitorGeom.r.top, monitorGeom.r.right - monitorGeom.r.left, monitorGeom.r.bottom - monitorGeom.r.top, SWP_NOSENDCHANGING);
 
+    PurgeThumbnails();
+    RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+
     g_programState.filter = _T("");
     CreateThumbnails(g_programState.filter);
     SetThumbnails();
+    RedrawWindow(g_programState.hWnd, NULL, NULL, RDW_INVALIDATE);
 }
 
 void QuitOverlay()
