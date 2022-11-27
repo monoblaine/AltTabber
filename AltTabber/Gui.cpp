@@ -413,7 +413,8 @@ void OnPaint(HDC hdc)
     int prevBkMode = SetBkMode(hdc, TRANSPARENT);
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
-        SetRectColor(hdc, j == g_programState.activeSlot ? RGB(0xff, 0xff, 0xff) : RGB(0xbb, 0xbb, 0xbb));
+        auto isActiveSlot = j == g_programState.activeSlot;
+        SetRectColor(hdc, isActiveSlot ? RGB(0xff, 0xff, 0xff) : RGB(0xbb, 0xbb, 0xbb));
         RECT container = (g_programState.slots[j]).r;
 
         container.left += 10;
