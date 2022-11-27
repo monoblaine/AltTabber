@@ -414,7 +414,7 @@ void OnPaint(HDC hdc)
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
         auto isActiveSlot = j == g_programState.activeSlot;
-        SetRectColor(hdc, isActiveSlot ? RGB(0xff, 0xff, 0xff) : RGB(0xbb, 0xbb, 0xbb));
+        SetRectColor(hdc, isActiveSlot ? RGB(0x00, 0x78, 0xd7) : RGB(0xbb, 0xbb, 0xbb));
         RECT container = (g_programState.slots[j]).r;
 
         container.left += 10;
@@ -460,7 +460,18 @@ void OnPaint(HDC hdc)
             r.bottom += topPadding;
         }
 
+        COLORREF originalTextColor = NULL;
+
+        if (isActiveSlot) {
+            originalTextColor = GetTextColor(hdc);
+            SetTextColor(hdc, RGB(0xff, 0xff, 0xff));
+        }
+
         DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
+
+        if (isActiveSlot) {
+            SetTextColor(hdc, originalTextColor);
+        }
 
         if (topPadding > 0) {
             r.top -= topPadding;
