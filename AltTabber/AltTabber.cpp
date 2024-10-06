@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "AltTabber.h"
 #include <UIAutomation.h>
-#include "MoveFunctions.h"
 
 #define MAX_LOADSTRING 100
 
@@ -30,7 +29,11 @@ extern void log(LPTSTR fmt, ...);
 extern MonitorGeom_t GetMonitorGeometry();
 extern void SynchronizeWithRegistry();
 extern void ActivateSwitcher();
+extern void SelectCurrent();
 extern void CloseCurrent(const HWND& hWnd);
+extern void MoveNext(DWORD);
+extern void MoveNextOnTaskbar(DWORD);
+extern void SelectByMouse(DWORD);
 extern void QuitOverlay();
 extern void PurgeThumbnails();
 extern void CreateThumbnails(std::wstring const&);
@@ -86,12 +89,9 @@ static bool initUIAutomation() {
             auto hTray = FindWindowEx(hDesktop, NULL, _T("Shell_TrayWnd"), NULL);
             auto hReBar = FindWindowEx(hTray, NULL, _T("ReBarWindow32"), NULL);
             auto hTask = FindWindowEx(hReBar, NULL, _T("MSTaskSwWClass"), NULL);
-            auto hTaskbarFrame = FindWindowEx(hTask, NULL, _T("Taskbar.TaskbarFrameAutomationPeer"), NULL);
-            IUIAutomationElement* tmp = nullptr;
+            auto hToolbar = FindWindowEx(hTask, NULL, _T("MSTaskListWClass"), NULL);
 
-            uiAutomation->ElementFromHandle(hTaskbarFrame, &tmp);
-            getFirstChildElement(&tmp, true);
-            toolbar = tmp;
+            uiAutomation->ElementFromHandle(hToolbar, &toolbar);
         }
     }
 

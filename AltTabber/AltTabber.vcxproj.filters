@@ -36,9 +36,6 @@
     <ClInclude Include="AltTabber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MoveFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
