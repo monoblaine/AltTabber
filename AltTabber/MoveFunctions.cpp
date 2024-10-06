@@ -2,6 +2,7 @@
 #include "AltTabber.h"
 #include <UIAutomation.h>
 #include <ShObjIdl.h>
+#include "MoveFunctions.h"
 
 extern ProgramState_t g_programState;
 extern IUIAutomation* uiAutomation;
@@ -148,7 +149,7 @@ static void getPrevSiblingElement(IUIAutomationElement** el, bool releaseOrigina
     updateEl(hr, el, &tmp, releaseOriginalEl);
 }
 
-static void getFirstChildElement(IUIAutomationElement** el, bool releaseOriginalEl = true) {
+void getFirstChildElement(IUIAutomationElement** el, bool releaseOriginalEl) {
     IUIAutomationElement* tmp;
     auto hr = treeWalker->GetFirstChildElement(*el, &tmp);
     updateEl(hr, el, &tmp, releaseOriginalEl);
@@ -168,12 +169,19 @@ static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
         return false;
     }
 
-    VARIANT variant;
-    el->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &variant);
-    auto hasPopup = ((*buttonState = variant.intVal) & STATE_SYSTEM_HASPOPUP) != 0;
-    VariantClear(&variant);
+    BSTR currentAutomationId;
+    auto hr = el->get_CurrentAutomationId(&currentAutomationId);
+    bool isMatch;
 
-    return hasPopup;
+    if (SUCCEEDED(hr)) {
+        std::wstring currentAutomationIdWStr(currentAutomationId);
+        isMatch = currentAutomationIdWStr.find(L"Window: ") == 0;
+    }
+    else {
+        isMatch = false;
+    }
+
+    return isMatch;
 }
 
 static void sendLeftClick(int x, int y) {
