@@ -586,11 +586,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_CHAR:
         switch(wParam) {
-        case 0x1B: // esc
-        case 0x08: // backspace
-        case 0x09: // tab
-        case 0x0D: // enter
-        // case 0x0A: // LF
+        case VK_ESCAPE:
+        case VK_BACK:
+        case VK_TAB:
+        case VK_RETURN:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
         g_programState.filter += (wchar_t)wParam;
