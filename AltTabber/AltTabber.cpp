@@ -590,6 +590,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case VK_BACK:
         case VK_TAB:
         case VK_RETURN:
+        case VK_SPACE:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
         g_programState.filter += (wchar_t)wParam;
@@ -627,6 +628,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             MoveNext((DWORD)wParam);
             break;
         case VK_RETURN:
+        case VK_SPACE:
             SelectCurrent();
             break;
         case VK_DELETE:
