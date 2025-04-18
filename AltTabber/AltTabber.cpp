@@ -285,38 +285,6 @@ BOOL InitInstance(HINSTANCE hInstance, int)
     return TRUE;
 }
 
-static void ShowContextMenu(int x, int y)
-{
-    if(g_programState.activeSlot >= 0
-        && (unsigned long)g_programState.activeSlot < g_programState.slots.size())
-    {
-        HMENU ctxMenu = CreatePopupMenu();
-        AppendMenu(ctxMenu, MF_STRING, MY_CLOSE_BTN_ID, _T("&Close"));
-
-        auto isIconic = IsIconic(g_programState.slots[g_programState.activeSlot].hwnd);
-        auto mis = GetMonitorGeometry();
-        auto size = mis.monitors.size();
-        if(!isIconic && size > 1 && size <= 10)
-        {
-            AppendMenu(ctxMenu, MF_SEPARATOR, 0, NULL);
-            for(size_t i = 0; i < size; ++i) {
-                TCHAR str[256];
-                wsprintf(str, _T("Move to monitor %lu"), (unsigned long)(i + 1));
-                AppendMenu(ctxMenu, MF_STRING, MY_MOVE_TO_BASE_ID + i, str);
-            }
-        } else if(isIconic) {
-            AppendMenu(ctxMenu, MF_SEPARATOR, 0, NULL);
-            AppendMenu(ctxMenu, MF_STRING | MF_DISABLED, 0, _T("Window is minimized"));
-        }
-
-        TrackPopupMenu(ctxMenu,
-            TPM_RIGHTBUTTON,
-            x, y,
-            0, g_programState.hWnd, NULL);
-        DestroyMenu(ctxMenu);
-    }
-}
-
 static inline void NotificationAreaMenu(POINT location)
 {
     // as per documentation, if hWnd is not the foreground window,
@@ -461,23 +429,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break; }
     case WM_SYSCOMMAND:
-        switch (wParam)
-        {
-        case SC_KEYMENU:
-            log(_T("SC_KEYMNU triggered\n"));
-            if(g_programState.activeSlot >= 0) {
-                RECT r = g_programState.slots[g_programState.activeSlot].r;
-                POINT p;
-                p.x = r.left;
-                p.y = r.top;
-                ClientToScreen(hWnd, &p);
-                ShowContextMenu(p.x, p.y);
-            }
-            break;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-        break;
+        return DefWindowProc(hWnd, message, wParam, lParam);
     case WM_COMMAND:
         wmId    = LOWORD(wParam);
         wmEvent = HIWORD(wParam);
@@ -570,15 +522,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if(amount > 0) MoveNext(VK_BACK);
         else MoveNext(VK_TAB);
         break; }
-    case WM_RBUTTONUP:
-        if(!g_programState.showing) break;
-        SelectByMouse((DWORD)lParam);
-        {
-            POINT p = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-            ClientToScreen(g_programState.hWnd, &p);
-            ShowContextMenu(p.x, p.y);
-        }
-        break;
     case WM_LBUTTONDOWN:
         if(!g_programState.showing) break;
         SelectByMouse((DWORD)lParam);
@@ -601,16 +544,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_KEYDOWN:
         switch(wParam) {
-        case VK_APPS: // menu key
-            if(g_programState.activeSlot >= 0) {
-                RECT r = g_programState.slots[g_programState.activeSlot].r;
-                POINT p;
-                p.x = r.left;
-                p.y = r.top;
-                ClientToScreen(hWnd, &p);
-                ShowContextMenu(p.x, p.y);
-            }
-            break;
         case VK_ESCAPE:
             QuitOverlay();
             break;
