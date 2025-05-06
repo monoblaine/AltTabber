@@ -397,7 +397,7 @@ void OnPaint(HDC hdc)
             OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY,
             DEFAULT_PITCH | FF_DONTCARE,
-            _T("JetBrains Mono"));
+            _T("Gubuntu Sans"));
     HFONT originalFont = (HFONT)SelectObject(hdc, font);
 
     auto mis = GetMonitorGeometry();
