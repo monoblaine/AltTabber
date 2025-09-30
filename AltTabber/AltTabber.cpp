@@ -473,16 +473,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // TODO: Add any drawing code here...
         if(g_programState.showing)
         {
-            HGDIOBJ original = NULL;
-            original = SelectObject(hdc, GetStockObject(DC_PEN));
-            HPEN pen = CreatePen(PS_SOLID, 5, RGB(0, 255, 0));
-            SelectObject(hdc, pen);
-            MoveToEx(hdc, 0, 0, NULL);
-            auto mi = GetMonitorGeometry();
-            LineTo(hdc, mi.r.right - mi.r.left, mi.r.bottom - mi.r.top);
-            SelectObject(hdc, original);
-            DeleteObject(pen);
-
             OnPaint(hdc);
         }
         EndPaint(hWnd, &ps);
