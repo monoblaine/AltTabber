@@ -383,6 +383,14 @@ static inline void SetRectColor(const HDC& hdc, const COLORREF& color)
     SetDCBrushColor(hdc, color);
 }
 
+static inline void SetRectColor2(const HDC& hdc, const COLORREF& penColor, const COLORREF& brushColor)
+{
+    SelectObject(hdc, GetStockObject(DC_PEN));
+    SetDCPenColor(hdc, penColor);
+    SelectObject(hdc, GetStockObject(DC_BRUSH));
+    SetDCBrushColor(hdc, brushColor);
+}
+
 void OnPaint(HDC hdc)
 {
     auto originalPen = SelectObject(hdc, GetStockObject(DC_PEN));
@@ -414,7 +422,14 @@ void OnPaint(HDC hdc)
 
     PerformSlotting([&](MonitorInfo_t& mi, size_t j, long l1, long, long hs, long ws) {
         auto isActiveSlot = j == g_programState.activeSlot;
-        SetRectColor(hdc, isActiveSlot ? RGB(0x00, 0x78, 0xd7) : RGB(0xbb, 0xbb, 0xbb));
+        SetRectColor2(
+            hdc,
+            RGB(0x33, 0x33, 0x33),
+            isActiveSlot
+                ? RGB(0x00, 0x78, 0xd7)
+                : RGB(0xcc, 0xcc, 0xcc)
+        );
+
         RECT container = (g_programState.slots[j]).r;
 
         container.left += 10;
