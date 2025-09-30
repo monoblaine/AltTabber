@@ -413,6 +413,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+    case WM_CREATE:
+        SetLayeredWindowAttributes(hWnd, kColorKey, 0, LWA_COLORKEY);
+        break;
+    case WM_ERASEBKGND: {
+        hdc = (HDC) wParam;
+        RECT rc;
+        GetClientRect(hWnd, &rc);
+        HBRUSH brush = CreateSolidBrush(kColorKey);
+        FillRect(hdc, &rc, brush);
+        DeleteObject(brush);
+        return 1;
+    }
+    case WM_SIZE:
+        InvalidateRect(hWnd, NULL, TRUE);
+        break;
     case MY_NOTIFY_ICON_MESSAGE_ID: {
         auto what = LOWORD(lParam);
         switch(what) {
