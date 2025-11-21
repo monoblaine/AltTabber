@@ -56,5 +56,3 @@ typedef struct {
     RECT r;
     std::vector<MonitorInfo_t> monitors;
 } MonitorGeom_t;
-
-const COLORREF kColorKey = RGB(255, 0, 0);

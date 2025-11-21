@@ -410,7 +410,7 @@ void OnPaint(HDC hdc)
 
     auto mis = GetMonitorGeometry();
 
-    SetRectColor(hdc, kColorKey);
+    SetRectColor(hdc, RGB(0xff, 0xff, 0xff));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
     RECT winRect;
     GetWindowRect(g_programState.hWnd, &winRect);
