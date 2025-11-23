@@ -58,5 +58,19 @@ MonitorGeom_t GetMonitorGeometry()
                 return left.extent.top < right.extent.top;
             });
 
+    const int paddingHorizontal = 200;
+    const int paddingVertical = 112;
+    ret.r.left += paddingHorizontal;
+    ret.r.right -= paddingHorizontal;
+    ret.r.top += paddingVertical;
+    ret.r.bottom -= paddingVertical;
+    for (size_t i = 0; i < ret.monitors.size(); ++i) {
+        auto& mi = ret.monitors[i];
+        mi.extent.left += paddingHorizontal;
+        mi.extent.right -= paddingHorizontal;
+        mi.extent.top += paddingVertical;
+        mi.extent.bottom -= paddingVertical;
+    }
+
     return ret;
 }
