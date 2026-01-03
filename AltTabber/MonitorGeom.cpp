@@ -58,18 +58,19 @@ MonitorGeom_t GetMonitorGeometry()
                 return left.extent.top < right.extent.top;
             });
 
-    const int paddingHorizontal = 200;
-    const int paddingVertical = 112;
+    const int paddingHorizontal = 160;
+    const int paddingVertical = paddingHorizontal * 0.5625;
+    const int halfTheTaskbarHeight = 40 / 2;
     ret.r.left += paddingHorizontal;
     ret.r.right -= paddingHorizontal;
-    ret.r.top += paddingVertical;
-    ret.r.bottom -= paddingVertical;
+    ret.r.top += paddingVertical - halfTheTaskbarHeight;
+    ret.r.bottom -= paddingVertical + halfTheTaskbarHeight;
     for (size_t i = 0; i < ret.monitors.size(); ++i) {
         auto& mi = ret.monitors[i];
         mi.extent.left += paddingHorizontal;
         mi.extent.right -= paddingHorizontal;
-        mi.extent.top += paddingVertical;
-        mi.extent.bottom -= paddingVertical;
+        mi.extent.top += paddingVertical - halfTheTaskbarHeight;
+        mi.extent.bottom -= paddingVertical + halfTheTaskbarHeight;
     }
 
     return ret;
