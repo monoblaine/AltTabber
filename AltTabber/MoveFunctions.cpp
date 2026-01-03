@@ -172,7 +172,7 @@ static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
     return hasPopup;
 }
 
-static void sendLeftClick(int x, int y) {
+static void SendLeftClickToCoords (int x, int y) {
     const double XSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CXSCREEN) - 1);
     const double YSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CYSCREEN) - 1);
     POINT cursorPos;
@@ -191,6 +191,25 @@ static void sendLeftClick(int x, int y) {
     input.mi.dy = (LONG) cy;
     input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
     SendInput(1, &input, sizeof(INPUT));
+}
+
+static void SendLeftClickToTaskBarButton (IUIAutomationElement* el) {
+    if (!el) {
+        return;
+    }
+    VARIANT variant;
+    el->GetCurrentPropertyValue(UIA_BoundingRectanglePropertyId, &variant);
+    double* rectData = nullptr;
+    SafeArrayAccessData(variant.parray, (void**) &rectData);
+    auto left = (int) rectData[0];
+    auto top = (int) rectData[1];
+    auto right = left + (int) rectData[2];
+    auto bottom = top + (int) rectData[3];
+    SafeArrayUnaccessData(variant.parray);
+    VariantClear(&variant);
+    auto pointX = left + (int) ((right - left) / 2);
+    auto pointY = top + (int) ((bottom - top) / 2);
+    SendLeftClickToCoords(pointX, pointY);
 }
 
 void MoveNextOnTaskbar(DWORD direction)
@@ -227,21 +246,9 @@ void MoveNextOnTaskbar(DWORD direction)
             }
         }
         while (el);
+        SendLeftClickToTaskBarButton(el);
         if (el) {
-            VARIANT variant;
-            el->GetCurrentPropertyValue(UIA_BoundingRectanglePropertyId, &variant);
             el->Release();
-            double* rectData = nullptr;
-            SafeArrayAccessData(variant.parray, (void**) &rectData);
-            auto left = (int) rectData[0];
-            auto top = (int) rectData[1];
-            auto right = left + (int) rectData[2];
-            auto bottom = top + (int) rectData[3];
-            SafeArrayUnaccessData(variant.parray);
-            VariantClear(&variant);
-            auto pointX = left + (int) ((right - left) / 2);
-            auto pointY = top + (int) ((bottom - top) / 2);
-            sendLeftClick(pointX, pointY);
         }
     }
 }
