@@ -410,7 +410,7 @@ void OnPaint(HDC hdc)
 
     auto mis = GetMonitorGeometry();
 
-    SetRectColor(hdc, RGB(0x00, 0x00, 0x00));
+    SetRectColor(hdc, RGB(0x00, 0x4a, 0x7f));
     log(_T("rectangle is %ld %ld %ld %ld\n"), mis.r.left, mis.r.top, mis.r.right, mis.r.bottom);
     RECT winRect;
     GetWindowRect(g_programState.hWnd, &winRect);
@@ -426,8 +426,8 @@ void OnPaint(HDC hdc)
             hdc,
             RGB(0x33, 0x33, 0x33),
             isActiveSlot
-                ? RGB(0x00, 0x78, 0xd7)
-                : RGB(0xcc, 0xcc, 0xcc)
+                ? RGB(0xcd, 0xe8, 0xff)
+                : RGB(0xaa, 0xaa, 0xaa)
         );
 
         RECT container = (g_programState.slots[j]).r;
@@ -477,16 +477,7 @@ void OnPaint(HDC hdc)
 
         COLORREF originalTextColor = NULL;
 
-        if (isActiveSlot) {
-            originalTextColor = GetTextColor(hdc);
-            SetTextColor(hdc, RGB(0xff, 0xff, 0xff));
-        }
-
         DrawText(hdc, str, -1, &r, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
-
-        if (isActiveSlot) {
-            SetTextColor(hdc, originalTextColor);
-        }
 
         if (topPadding > 0) {
             r.top -= topPadding;
