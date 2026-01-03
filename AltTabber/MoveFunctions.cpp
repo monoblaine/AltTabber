@@ -128,7 +128,6 @@ static inline void updateEl(HRESULT hr, IUIAutomationElement** el, IUIAutomation
         if (releaseOriginalEl) {
             (*el)->Release();
         }
-
         *el = *tmp;
     }
     else {
@@ -163,47 +162,34 @@ static void getLastChildElement(IUIAutomationElement** el, bool releaseOriginalE
 static bool isButtonWithPopup(IUIAutomationElement* el, int* buttonState) {
     CONTROLTYPEID typeId;
     el->get_CurrentControlType(&typeId);
-
     if (typeId != UIA_ButtonControlTypeId) {
         return false;
     }
-
     VARIANT variant;
     el->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &variant);
     auto hasPopup = ((*buttonState = variant.intVal) & STATE_SYSTEM_HASPOPUP) != 0;
     VariantClear(&variant);
-
     return hasPopup;
 }
 
 static void sendLeftClick(int x, int y) {
     const double XSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CXSCREEN) - 1);
     const double YSCALEFACTOR = 65535.0 / (GetSystemMetrics(SM_CYSCREEN) - 1);
-
     POINT cursorPos;
     GetCursorPos(&cursorPos);
-
     double cx = cursorPos.x * XSCALEFACTOR;
     double cy = cursorPos.y * YSCALEFACTOR;
-
     double nx = x * XSCALEFACTOR;
     double ny = y * YSCALEFACTOR;
-
     INPUT input = { 0 };
     input.type = INPUT_MOUSE;
-
     input.mi.dx = (LONG) nx;
     input.mi.dy = (LONG) ny;
-
     input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP;
-
     SendInput(1, &input, sizeof(INPUT));
-
     input.mi.dx = (LONG) cx;
     input.mi.dy = (LONG) cy;
-
     input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-
     SendInput(1, &input, sizeof(INPUT));
 }
 
@@ -212,21 +198,16 @@ void MoveNextOnTaskbar(DWORD direction)
     auto isLtr = direction == VK_RIGHT;
     IUIAutomationElement* el = toolbar;
     int buttonState;
-
     getFirstChildElement(&el, false);
-
     while (el) {
         if (isButtonWithPopup(el, &buttonState) && (buttonState & STATE_SYSTEM_PRESSED) != 0) {
             break;
         }
-
         getNextSiblingElement(&el);
     }
-
     if (el) {
         void (*getSiblingElement)(IUIAutomationElement**, bool) = nullptr;
         void (*getElementFromEdge)(IUIAutomationElement**, bool) = nullptr;
-
         if (isLtr) {
             getSiblingElement = &getNextSiblingElement;
             getElementFromEdge = &getFirstChildElement;
@@ -235,24 +216,19 @@ void MoveNextOnTaskbar(DWORD direction)
             getSiblingElement = &getPrevSiblingElement;
             getElementFromEdge = &getLastChildElement;
         }
-
         do {
             getSiblingElement(&el, true);
-
             if (!el) {
                 el = toolbar;
                 getElementFromEdge(&el, false);
             }
-
             if (el && isButtonWithPopup(el, &buttonState)) {
                 break;
             }
         }
         while (el);
-
         if (el) {
             VARIANT variant;
-
             el->GetCurrentPropertyValue(UIA_BoundingRectanglePropertyId, &variant);
             el->Release();
             double* rectData = nullptr;
@@ -263,10 +239,8 @@ void MoveNextOnTaskbar(DWORD direction)
             auto bottom = top + (int) rectData[3];
             SafeArrayUnaccessData(variant.parray);
             VariantClear(&variant);
-
             auto pointX = left + (int) ((right - left) / 2);
             auto pointY = top + (int) ((bottom - top) / 2);
-
             sendLeftClick(pointX, pointY);
         }
     }
